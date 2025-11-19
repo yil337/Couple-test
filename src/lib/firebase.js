@@ -1,7 +1,8 @@
 import { initializeApp } from 'firebase/app'
 import { getFirestore } from 'firebase/firestore'
 
-const firebaseConfig = {
+// Validate environment variables
+const requiredEnvVars = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
   projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
@@ -10,11 +11,47 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 }
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig)
+// Check for missing environment variables
+const missingVars = Object.entries(requiredEnvVars)
+  .filter(([key, value]) => !value)
+  .map(([key]) => key)
 
-// Initialize Firestore
-export const db = getFirestore(app)
+if (missingVars.length > 0 && typeof window !== 'undefined') {
+  console.error('Missing Firebase environment variables:', missingVars)
+}
+
+const firebaseConfig = {
+  apiKey: requiredEnvVars.apiKey,
+  authDomain: requiredEnvVars.authDomain,
+  projectId: requiredEnvVars.projectId,
+  storageBucket: requiredEnvVars.storageBucket,
+  messagingSenderId: requiredEnvVars.messagingSenderId,
+  appId: requiredEnvVars.appId,
+}
+
+// Initialize Firebase
+let app
+let db
+
+try {
+  app = initializeApp(firebaseConfig)
+  db = getFirestore(app)
+} catch (error) {
+  console.error('Firebase initialization error:', error)
+  if (typeof window !== 'undefined') {
+    console.error('Firebase config:', {
+      apiKey: firebaseConfig.apiKey ? 'Set' : 'Missing',
+      authDomain: firebaseConfig.authDomain ? 'Set' : 'Missing',
+      projectId: firebaseConfig.projectId ? 'Set' : 'Missing',
+      storageBucket: firebaseConfig.storageBucket ? 'Set' : 'Missing',
+      messagingSenderId: firebaseConfig.messagingSenderId ? 'Set' : 'Missing',
+      appId: firebaseConfig.appId ? 'Set' : 'Missing',
+    })
+  }
+  throw error
+}
+
+export { db }
 
 // Test function: Write to Firestore
 export async function testWrite() {
@@ -67,10 +104,11 @@ export async function generatePairId() {
 }
 
 // Save userA result to Firestore
+// Path: tests/{pairId}/userA/result (4 segments - valid document path)
 export async function saveUserA(pairId, userData) {
   const { doc, setDoc, serverTimestamp } = await import('firebase/firestore')
   try {
-    await setDoc(doc(db, 'tests', pairId, 'userA'), {
+    await setDoc(doc(db, 'tests', pairId, 'userA', 'result'), {
       ...userData,
       createdAt: serverTimestamp(),
     })
@@ -83,10 +121,11 @@ export async function saveUserA(pairId, userData) {
 }
 
 // Save userB result to Firestore
+// Path: tests/{pairId}/userB/result (4 segments - valid document path)
 export async function saveUserB(pairId, userData) {
   const { doc, setDoc, serverTimestamp } = await import('firebase/firestore')
   try {
-    await setDoc(doc(db, 'tests', pairId, 'userB'), {
+    await setDoc(doc(db, 'tests', pairId, 'userB', 'result'), {
       ...userData,
       createdAt: serverTimestamp(),
     })
@@ -99,10 +138,11 @@ export async function saveUserB(pairId, userData) {
 }
 
 // Get test result from Firestore (for backward compatibility)
+// Path: tests/{testId}/userA/result (4 segments - valid document path)
 export async function getTestResult(testId) {
   const { doc, getDoc } = await import('firebase/firestore')
   try {
-    const docRef = doc(db, 'tests', testId, 'userA')
+    const docRef = doc(db, 'tests', testId, 'userA', 'result')
     const docSnap = await getDoc(docRef)
     if (docSnap.exists()) {
       return { success: true, data: docSnap.data() }
@@ -116,11 +156,12 @@ export async function getTestResult(testId) {
 }
 
 // Get pair data (both userA and userB)
+// Path: tests/{pairId}/userA/result and tests/{pairId}/userB/result (4 segments each - valid document paths)
 export async function getPairData(pairId) {
   const { doc, getDoc } = await import('firebase/firestore')
   try {
-    const userARef = doc(db, 'tests', pairId, 'userA')
-    const userBRef = doc(db, 'tests', pairId, 'userB')
+    const userARef = doc(db, 'tests', pairId, 'userA', 'result')
+    const userBRef = doc(db, 'tests', pairId, 'userB', 'result')
     
     const [userASnap, userBSnap] = await Promise.all([
       getDoc(userARef),

@@ -1,0 +1,28 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Allow read/write access to tests collection
+    match /tests/{testId} {
+      // Allow read/write to the test document itself
+      allow read, write: if true;
+      
+      // Allow read/write to userA subcollection documents
+      // Path: tests/{testId}/userA/{docId}
+      match /userA/{docId} {
+        allow read, write: if true;
+      }
+      
+      // Allow read/write to userB subcollection documents
+      // Path: tests/{testId}/userB/{docId}
+      match /userB/{docId} {
+        allow read, write: if true;
+      }
+    }
+    
+    // Allow read/write access to test collection (for backward compatibility)
+    match /test/{document=**} {
+      allow read, write: if true;
+    }
+  }
+}
+
