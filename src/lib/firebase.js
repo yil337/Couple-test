@@ -104,16 +104,19 @@ export async function generatePairId() {
 }
 
 // Save userA result to Firestore
-// Path: tests/{pairId}/userA/result (4 segments - valid document path)
+// Path: tests/{pairId}/userA/{autoId} (4 segments - valid document path)
+// Using subcollection with auto-generated document ID
 export async function saveUserA(pairId, userData) {
-  const { doc, setDoc, serverTimestamp } = await import('firebase/firestore')
+  const { collection, doc, setDoc, serverTimestamp } = await import('firebase/firestore')
   try {
-    await setDoc(doc(db, 'tests', pairId, 'userA', 'result'), {
+    // Create document reference in subcollection with auto-generated ID
+    const userARef = doc(collection(db, 'tests', pairId, 'userA'))
+    await setDoc(userARef, {
       ...userData,
       createdAt: serverTimestamp(),
     })
-    console.log('UserA saved successfully')
-    return { success: true, pairId }
+    console.log('UserA saved successfully with ID:', userARef.id)
+    return { success: true, pairId, docId: userARef.id }
   } catch (error) {
     console.error('Save userA error:', error)
     return { success: false, error }
@@ -121,16 +124,19 @@ export async function saveUserA(pairId, userData) {
 }
 
 // Save userB result to Firestore
-// Path: tests/{pairId}/userB/result (4 segments - valid document path)
+// Path: tests/{pairId}/userB/{autoId} (4 segments - valid document path)
+// Using subcollection with auto-generated document ID
 export async function saveUserB(pairId, userData) {
-  const { doc, setDoc, serverTimestamp } = await import('firebase/firestore')
+  const { collection, doc, setDoc, serverTimestamp } = await import('firebase/firestore')
   try {
-    await setDoc(doc(db, 'tests', pairId, 'userB', 'result'), {
+    // Create document reference in subcollection with auto-generated ID
+    const userBRef = doc(collection(db, 'tests', pairId, 'userB'))
+    await setDoc(userBRef, {
       ...userData,
       createdAt: serverTimestamp(),
     })
-    console.log('UserB saved successfully')
-    return { success: true, pairId }
+    console.log('UserB saved successfully with ID:', userBRef.id)
+    return { success: true, pairId, docId: userBRef.id }
   } catch (error) {
     console.error('Save userB error:', error)
     return { success: false, error }
@@ -138,14 +144,18 @@ export async function saveUserB(pairId, userData) {
 }
 
 // Get test result from Firestore (for backward compatibility)
-// Path: tests/{testId}/userA/result (4 segments - valid document path)
+// Path: tests/{testId}/userA/{autoId} - query subcollection to get latest document
 export async function getTestResult(testId) {
-  const { doc, getDoc } = await import('firebase/firestore')
+  const { collection, getDocs, query, orderBy, limit } = await import('firebase/firestore')
   try {
-    const docRef = doc(db, 'tests', testId, 'userA', 'result')
-    const docSnap = await getDoc(docRef)
-    if (docSnap.exists()) {
-      return { success: true, data: docSnap.data() }
+    // Query the userA subcollection to get the latest document
+    const userACollection = collection(db, 'tests', testId, 'userA')
+    const q = query(userACollection, orderBy('createdAt', 'desc'), limit(1))
+    const querySnapshot = await getDocs(q)
+    
+    if (!querySnapshot.empty) {
+      const doc = querySnapshot.docs[0]
+      return { success: true, data: doc.data() }
     } else {
       return { success: false, error: 'Document not found' }
     }
@@ -156,21 +166,23 @@ export async function getTestResult(testId) {
 }
 
 // Get pair data (both userA and userB)
-// Path: tests/{pairId}/userA/result and tests/{pairId}/userB/result (4 segments each - valid document paths)
+// Path: tests/{pairId}/userA/{autoId} and tests/{pairId}/userB/{autoId}
+// Query subcollections to get latest documents
 export async function getPairData(pairId) {
-  const { doc, getDoc } = await import('firebase/firestore')
+  const { collection, getDocs, query, orderBy, limit } = await import('firebase/firestore')
   try {
-    const userARef = doc(db, 'tests', pairId, 'userA', 'result')
-    const userBRef = doc(db, 'tests', pairId, 'userB', 'result')
+    // Query both subcollections to get the latest documents
+    const userACollection = collection(db, 'tests', pairId, 'userA')
+    const userBCollection = collection(db, 'tests', pairId, 'userB')
     
-    const [userASnap, userBSnap] = await Promise.all([
-      getDoc(userARef),
-      getDoc(userBRef)
+    const [userAQuery, userBQuery] = await Promise.all([
+      getDocs(query(userACollection, orderBy('createdAt', 'desc'), limit(1))),
+      getDocs(query(userBCollection, orderBy('createdAt', 'desc'), limit(1)))
     ])
 
     const result = {
-      userA: userASnap.exists() ? userASnap.data() : null,
-      userB: userBSnap.exists() ? userBSnap.data() : null,
+      userA: !userAQuery.empty ? userAQuery.docs[0].data() : null,
+      userB: !userBQuery.empty ? userBQuery.docs[0].data() : null,
     }
 
     if (!result.userA && !result.userB) {
