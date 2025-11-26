@@ -68,8 +68,14 @@ async function ensureAuth() {
   }
 
   // 如果已经初始化，检查登录状态
-  if (isInitialized && app && auth) {
-    if (auth.hasLoginState()) {
+  if (isInitialized && app) {
+    // 确保 auth 已初始化
+    if (!auth) {
+      auth = app.auth({
+        persistence: "local"
+      })
+    }
+    if (auth && auth.hasLoginState()) {
       console.log('[CloudBase] Already initialized and has login state')
       return
     }
