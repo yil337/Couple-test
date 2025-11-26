@@ -28,6 +28,8 @@ export default function Result() {
   const [savingPair, setSavingPair] = useState(false)
 
   useEffect(() => {
+    // STRICT: 确保只在客户端执行
+    if (typeof window === 'undefined') return
     if (!router.isReady) return
 
     if (!testId) {
@@ -50,7 +52,7 @@ export default function Result() {
         }
       } catch (err) {
         console.error('Fetch result error:', err)
-        setError('加载失败，请重试')
+        setError('加载失败，请重试: ' + (err.message || String(err)))
       } finally {
         setLoading(false)
       }
@@ -60,6 +62,12 @@ export default function Result() {
   }, [testId, router.isReady])
 
   const handleGeneratePair = async () => {
+    // STRICT: 确保只在客户端执行
+    if (typeof window === 'undefined') {
+      setError('此操作只能在浏览器中执行')
+      return
+    }
+
     if (!result) return
 
     setSavingPair(true)
