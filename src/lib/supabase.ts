@@ -23,7 +23,7 @@ export async function generatePairId() {
       .insert({
         id: pairId,
         created_at: new Date().toISOString(),
-      })
+      } as any)
       .select()
       .single()
 
@@ -63,21 +63,21 @@ export async function saveUserA(pairId: string, userData: any) {
       .update({
         user_a: userData,
         updated_at: new Date().toISOString(),
-      })
+      } as any)
       .eq('id', pairId)
       .select()
       .single()
 
     if (error) {
       // 如果更新失败（记录不存在），尝试创建新记录
-      if (error.code === 'PGRST116') {
+        if (error.code === 'PGRST116') {
         const { error: insertError } = await supabase
           .from('test_results')
           .insert({
             id: pairId,
             user_a: userData,
             created_at: new Date().toISOString(),
-          })
+          } as any)
           .select()
           .single()
 
@@ -121,7 +121,7 @@ export async function saveUserB(pairId: string, userData: any) {
       .update({
         user_b: userData,
         updated_at: new Date().toISOString(),
-      })
+      } as any)
       .eq('id', pairId)
       .select()
       .single()
