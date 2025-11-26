@@ -46,9 +46,16 @@ export default function Result() {
         const { getTestResult } = getSupabaseFunctions()
         const resultData = await getTestResult(decodedTestId)
         if (resultData.success) {
-          setResult(resultData.data)
+          console.log('[Result] Fetched data:', resultData.data)
+          // 确保数据是对象格式（Supabase JSONB 可能返回字符串）
+          const data = typeof resultData.data === 'string' 
+            ? JSON.parse(resultData.data) 
+            : resultData.data
+          console.log('[Result] Parsed data:', data)
+          setResult(data)
         } else {
-          setError('无法加载测试结果')
+          console.error('[Result] Failed to fetch:', resultData.error)
+          setError('无法加载测试结果: ' + (resultData.error || ''))
         }
       } catch (err) {
         console.error('Fetch result error:', err)
@@ -87,12 +94,12 @@ export default function Result() {
 
       // Save userA data to the pair
       const userData = {
-        answers: result.answers,
-        styleScores: result.styleScores,
-        attachScores: result.attachScores,
-        resultKey: result.resultKey,
-        resultName: result.resultName,
-        resultDesc: result.resultDesc,
+        answers: resultObj?.answers || result?.answers,
+        styleScores: resultObj?.styleScores || result?.styleScores,
+        attachScores: resultObj?.attachScores || result?.attachScores,
+        resultKey: resultObj?.resultKey || result?.resultKey,
+        resultName: resultObj?.resultName || result?.resultName,
+        resultDesc: resultObj?.resultDesc || result?.resultDesc,
       }
 
       const saveResult = await saveUserA(newPairId, userData)
@@ -154,10 +161,46 @@ export default function Result() {
     )
   }
 
-  const typeInfo = TYPE_MAP[result?.resultKey] || {
-    name: result?.resultName || '未知型',
-    desc: result?.resultDesc || '无法确定类型'
+  // 如果没有结果数据，显示加载或错误
+  if (!result) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-500 mx-auto mb-4"></div>
+          <p className="text-gray-600">加载中...</p>
+        </div>
+      </div>
+    )
   }
+
+  // 确保 result 是对象格式
+  let resultObj = null
+  if (result) {
+    if (typeof result === 'string') {
+      try {
+        resultObj = JSON.parse(result)
+      } catch (e) {
+        console.error('[Result] Failed to parse result string:', e)
+        resultObj = null
+      }
+    } else if (typeof result === 'object') {
+      resultObj = result
+    }
+  }
+  
+  console.log('[Result] resultObj:', resultObj)
+  console.log('[Result] resultObj?.resultKey:', resultObj?.resultKey)
+  
+  // 获取类型信息
+  const resultKey = resultObj?.resultKey
+  const typeInfo = resultKey && TYPE_MAP[resultKey] 
+    ? TYPE_MAP[resultKey]
+    : {
+        name: resultObj?.resultName || '未知型',
+        desc: resultObj?.resultDesc || '无法确定类型'
+      }
+  
+  console.log('[Result] typeInfo:', typeInfo)
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50 py-12 px-4">
@@ -189,7 +232,7 @@ export default function Result() {
               {typeInfo.name}
             </div>
             <div className="text-gray-600 text-sm mb-4">
-              类型代码: {result?.resultKey}
+              类型代码: {resultObj?.resultKey || '未知'}
             </div>
           </div>
 
@@ -206,7 +249,7 @@ export default function Result() {
             <div>
               <h3 className="text-lg font-semibold text-gray-800 mb-4">爱情风格得分</h3>
               <div className="space-y-2">
-                {Object.entries(result?.styleScores || {}).map(([style, score]) => (
+                {Object.entries(resultObj?.styleScores || {}).map(([style, score]) => (
                   <div key={style} className="flex items-center justify-between">
                     <span className="text-gray-600">
                       {style === 'P' ? '激情' : 
@@ -234,7 +277,7 @@ export default function Result() {
             <div>
               <h3 className="text-lg font-semibold text-gray-800 mb-4">依恋风格得分</h3>
               <div className="space-y-2">
-                {Object.entries(result?.attachScores || {}).map(([attach, score]) => (
+                {Object.entries(resultObj?.attachScores || {}).map(([attach, score]) => (
                   <div key={attach} className="flex items-center justify-between">
                     <span className="text-gray-600">
                       {attach === 'S' ? '安全' :
