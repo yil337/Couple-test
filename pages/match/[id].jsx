@@ -1,9 +1,18 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
-import { getPairData } from '../../src/lib/cloudbase'
 import { TYPE_MAP, ANIMAL_MAP } from '../../src/lib/types'
 import { calculateMatch, getDynamics, getStrengths, getRisks, getAdvice } from '../../src/lib/calculateMatch'
+
+// 动态导入 CloudBase 函数，确保只在客户端执行
+const getCloudBaseFunctions = () => {
+  if (typeof window === 'undefined') {
+    return {
+      getPairData: async () => ({ success: false, error: 'Client only' }),
+    }
+  }
+  return require('../../src/lib/cloudbase')
+}
 
 export default function Match() {
   const router = useRouter()
@@ -15,10 +24,13 @@ export default function Match() {
   const [matchResult, setMatchResult] = useState(null)
 
   useEffect(() => {
+    // STRICT: 确保只在客户端执行
+    if (typeof window === 'undefined') return
     if (!router.isReady || !id) return
 
     const fetchData = async () => {
       try {
+        const { getPairData } = getCloudBaseFunctions()
         const result = await getPairData(id)
         if (result.success) {
           setUserA(result.data.userA)
@@ -38,7 +50,7 @@ export default function Match() {
         }
       } catch (err) {
         console.error('Fetch match data error:', err)
-        setError('加载失败，请重试')
+        setError('加载失败，请重试: ' + (err.message || String(err)))
       } finally {
         setLoading(false)
       }

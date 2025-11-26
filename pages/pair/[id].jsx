@@ -1,8 +1,17 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
-import { getPairData } from '../../src/lib/cloudbase'
 import TestComponent from '../../components/TestComponent'
+
+// 动态导入 CloudBase 函数，确保只在客户端执行
+const getCloudBaseFunctions = () => {
+  if (typeof window === 'undefined') {
+    return {
+      getPairData: async () => ({ success: false, error: 'Client only' }),
+    }
+  }
+  return require('../../src/lib/cloudbase')
+}
 
 export default function Pair() {
   const router = useRouter()
@@ -14,10 +23,13 @@ export default function Pair() {
   const [showTest, setShowTest] = useState(false)
 
   useEffect(() => {
+    // STRICT: 确保只在客户端执行
+    if (typeof window === 'undefined') return
     if (!router.isReady || !id) return
 
     const fetchPairData = async () => {
       try {
+        const { getPairData } = getCloudBaseFunctions()
         const result = await getPairData(id)
         if (result.success) {
           setUserA(result.data.userA)
@@ -38,7 +50,7 @@ export default function Pair() {
         }
       } catch (err) {
         console.error('Fetch pair data error:', err)
-        setError('加载失败，请重试')
+        setError('加载失败，请重试: ' + (err.message || String(err)))
       } finally {
         setLoading(false)
       }

@@ -1,9 +1,20 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
 import { QUESTIONS } from '../src/lib/types'
 import { calculateType } from '../src/lib/calculateType'
-import { saveUserA, saveUserB, generatePairId } from '../src/lib/cloudbase'
+
+// 动态导入 CloudBase 函数，确保只在客户端执行
+const getCloudBaseFunctions = () => {
+  if (typeof window === 'undefined') {
+    return {
+      saveUserA: async () => ({ success: false, error: 'Client only' }),
+      saveUserB: async () => ({ success: false, error: 'Client only' }),
+      generatePairId: async () => ({ success: false, error: 'Client only' }),
+    }
+  }
+  return require('../src/lib/cloudbase')
+}
 
 export default function Test() {
   const router = useRouter()
@@ -37,6 +48,12 @@ export default function Test() {
   }
 
   const handleSubmit = async () => {
+    // STRICT: 确保只在客户端执行
+    if (typeof window === 'undefined') {
+      setError('此操作只能在浏览器中执行')
+      return
+    }
+
     // Check if all questions are answered
     if (answers.some(answer => answer === null)) {
       setError('请回答所有问题')
@@ -47,6 +64,9 @@ export default function Test() {
     setError(null)
 
     try {
+      // 动态获取 CloudBase 函数
+      const { saveUserA, saveUserB, generatePairId } = getCloudBaseFunctions()
+
       // Calculate type
       const result = calculateType(answers)
 
@@ -92,7 +112,7 @@ export default function Test() {
       }
     } catch (err) {
       console.error('Submit error:', err)
-      setError('提交失败，请重试')
+      setError('提交失败，请重试: ' + (err.message || String(err)))
       setIsSubmitting(false)
     }
   }

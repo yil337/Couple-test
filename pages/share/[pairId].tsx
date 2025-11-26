@@ -1,8 +1,18 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
-import { getPairData, getTestResult } from '../../src/lib/cloudbase'
 import SharePoster from '../../components/SharePoster'
+
+// 动态导入 CloudBase 函数，确保只在客户端执行
+const getCloudBaseFunctions = () => {
+  if (typeof window === 'undefined') {
+    return {
+      getPairData: async () => ({ success: false, error: 'Client only' }),
+      getTestResult: async () => ({ success: false, error: 'Client only' }),
+    }
+  }
+  return require('../../src/lib/cloudbase')
+}
 
 export default function SharePage() {
   const router = useRouter()
@@ -12,10 +22,13 @@ export default function SharePage() {
   const [userData, setUserData] = useState(null)
 
   useEffect(() => {
+    // STRICT: 确保只在客户端执行
+    if (typeof window === 'undefined') return
     if (!router.isReady || !pairId) return
 
     const fetchData = async () => {
       try {
+        const { getPairData, getTestResult } = getCloudBaseFunctions()
         let result
 
         // If user parameter is specified, get specific user data
@@ -50,7 +63,7 @@ export default function SharePage() {
         }
       } catch (err) {
         console.error('Fetch share data error:', err)
-        setError('加载失败，请重试')
+        setError('加载失败，请重试: ' + (err.message || String(err)))
       } finally {
         setLoading(false)
       }

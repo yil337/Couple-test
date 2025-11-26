@@ -1,201 +1,124 @@
 import cloudbase from '@cloudbase/js-sdk'
 
-// Initialize CloudBase
-let app
-let db
-let auth
+// CloudBase 初始化 - 严格客户端执行
+let app = null
+let db = null
+let auth = null
 let isInitialized = false
 let isAuthenticated = false
+let initPromise = null
 
-// Get database instance - STRICT client-side only
-// This function MUST only be called from browser (client-side)
-// Returns null if called on server or if database is not available
-export function getDb() {
-  // STRICT: Service-side/Edge Runtime禁止访问
+/**
+ * 获取 CloudBase App 实例
+ * 严格禁止在 SSR/Worker 环境执行
+ */
+export function getCloudBaseApp() {
+  // STRICT: SSR/Edge Runtime 禁止访问
   if (typeof window === 'undefined') {
-    console.warn('[CloudBase] getDb() called on server - CloudBase disabled on server')
+    console.warn('[CloudBase] getCloudBaseApp() called on server - CloudBase disabled on server')
     return null
   }
 
-  // Initialize CloudBase if not already done
-  if (!isInitialized) {
-    try {
-      app = cloudbase.init({
-        env: 'cloud1-1gr3cxva723e4e6e',
-        region: 'ap-shanghai'
-      })
-
-      auth = app.auth()
-      db = app.database()
-
-      // Sign in anonymously (fire and forget for now, will be awaited in ensureAuth)
-      auth.signInAnonymously().then(() => {
-        isAuthenticated = true
-        console.log('[CloudBase] Anonymous login successful')
-      }).catch((error) => {
-        console.error('[CloudBase] Anonymous login error:', error)
-      })
-
-      isInitialized = true
-      console.log('[CloudBase] Initialized successfully')
-    } catch (error) {
-      console.error('[CloudBase] Initialization error:', error)
-      return null
-    }
-  }
-
-  return db
-}
-
-// Initialize CloudBase and ensure anonymous login
-// Only initialize on client side (browser)
-async function initCloudBase() {
-  // STRICT: Check if we're in browser environment
-  if (typeof window === 'undefined') {
-    console.warn('[CloudBase] initCloudBase() called on server - CloudBase disabled on server')
-    return { app: null, db: null, auth: null }
-  }
-
-  if (isInitialized && app && isAuthenticated) {
-    return { app, db, auth }
-  }
-
-  try {
-    // Initialize CloudBase
+  if (!app) {
     app = cloudbase.init({
       env: 'cloud1-1gr3cxva723e4e6e',
       region: 'ap-shanghai'
     })
+  }
 
-    auth = app.auth()
+  return app
+}
+
+/**
+ * 获取数据库实例
+ * 严格禁止在 SSR/Worker 环境执行
+ */
+export function getDb() {
+  const app = getCloudBaseApp()
+  if (!app) {
+    return null
+  }
+
+  if (!db) {
     db = app.database()
-
-    // Sign in anonymously - ensure this happens before any database operations
-    try {
-      await auth.signInAnonymously()
-      isAuthenticated = true
-      console.log('[CloudBase] Anonymous login successful')
-    } catch (authError) {
-      console.error('[CloudBase] Anonymous login error:', authError)
-      // Try to get current user
-      const currentUser = auth.currentUser
-      if (!currentUser) {
-        throw new Error('Failed to authenticate with CloudBase')
-      }
-      isAuthenticated = true
-    }
-
-    isInitialized = true
-    console.log('[CloudBase] Initialized successfully')
-    return { app, db, auth }
-  } catch (error) {
-    console.error('[CloudBase] Initialization error:', error)
-    throw error
-  }
-}
-
-// Ensure authentication before database operations
-async function ensureAuth() {
-  // STRICT: Only run in browser
-  if (typeof window === 'undefined') {
-    console.warn('[CloudBase] ensureAuth() called on server - CloudBase disabled on server')
-    return
   }
 
-  if (!isInitialized || !isAuthenticated) {
-    await initCloudBase()
-  }
-  
-  // Double check authentication status
-  if (auth && !auth.currentUser) {
-    await auth.signInAnonymously()
-    isAuthenticated = true
-  }
-}
-
-// Legacy getDb function (for backward compatibility)
-// Now uses the exported getDb() function
-async function getDbLegacy() {
-  await ensureAuth()
   return db
 }
 
-// Test function: Write to database
-export async function testWrite() {
-  // STRICT: Only run in browser
+/**
+ * 确保 CloudBase 已初始化并完成匿名登录
+ * 严格禁止在 SSR/Worker 环境执行
+ */
+async function ensureAuth() {
+  // STRICT: 服务端禁止执行
   if (typeof window === 'undefined') {
-    console.warn('[CloudBase] testWrite() called on server - CloudBase disabled on server')
-    return { success: false, error: 'CloudBase can only run in browser' }
+    throw new Error('ensureAuth should only run on client')
   }
 
-  try {
-    const database = getDb()
-    if (!database) {
-      return { success: false, error: 'Database not available' }
-    }
-    const docId = `test_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-    await database.collection('test').doc(docId).set({
-      hello: 'world',
-      timestamp: new Date().toISOString(),
-    })
-    console.log('[CloudBase] Test write successful')
-    return { success: true }
-  } catch (error) {
-    console.error('[CloudBase] Test write error:', error)
-    return { success: false, error: error.message || error }
+  // 如果已经在初始化中，等待完成
+  if (initPromise) {
+    await initPromise
+    return
   }
+
+  // 如果已经初始化并认证，直接返回
+  if (isInitialized && isAuthenticated && auth && auth.currentUser) {
+    return
+  }
+
+  // 开始初始化
+  initPromise = (async () => {
+    try {
+      const appInstance = getCloudBaseApp()
+      if (!appInstance) {
+        throw new Error('CloudBase app not available')
+      }
+
+      auth = appInstance.auth()
+      db = appInstance.database()
+
+      // 匿名登录
+      await auth.signInAnonymously()
+      isAuthenticated = true
+      isInitialized = true
+
+      console.log('[CloudBase] Anonymous login successful')
+      console.log('[CloudBase] Initialized successfully')
+    } catch (error) {
+      console.error('[CloudBase] Initialization or Anonymous login error:', error)
+      isInitialized = false
+      isAuthenticated = false
+      initPromise = null
+      throw error
+    }
+  })()
+
+  await initPromise
 }
 
-// Test function: Read from database
-export async function testRead() {
-  // STRICT: Only run in browser
-  if (typeof window === 'undefined') {
-    console.warn('[CloudBase] testRead() called on server - CloudBase disabled on server')
-    return { success: false, error: 'CloudBase can only run in browser' }
-  }
-
-  try {
-    const database = getDb()
-    if (!database) {
-      return { success: false, error: 'Database not available' }
-    }
-    const result = await database.collection('test').get()
-    const docs = result.data.map((doc) => ({
-      id: doc._id,
-      ...doc
-    }))
-    console.log('[CloudBase] Test read successful:', docs)
-    return { success: true, data: docs }
-  } catch (error) {
-    console.error('[CloudBase] Test read error:', error)
-    return { success: false, error: error.message || error }
-  }
-}
-
-// Generate unique pair ID
-// Creates: tests/{pairId} document
-// STRICT: Must only be called from client-side (browser)
+/**
+ * 生成唯一配对 ID
+ * 严格禁止在 SSR/Worker 环境执行
+ */
 export async function generatePairId() {
-  // STRICT: Only run in browser
+  // STRICT: 服务端禁止执行
   if (typeof window === 'undefined') {
-    console.warn('[CloudBase] generatePairId() called on server - CloudBase disabled on server')
-    return { success: false, error: 'This function can only run in browser' }
+    throw new Error('generatePairId should only run on client')
   }
 
   try {
-    // Ensure authentication before database operations
     await ensureAuth()
     
     const database = getDb()
     if (!database) {
-      return { success: false, error: 'Database not available' }
+      throw new Error('Database not available')
     }
     
-    // Generate a unique ID
+    // 生成唯一 ID
     const pairId = `pair_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
     
-    // CloudBase: use doc().set() to create document with custom ID
-    // add() doesn't support custom _id, must use doc().set()
+    // CloudBase: 使用 doc().set() 创建带自定义 ID 的文档
     await database.collection('tests').doc(pairId).set({
       createdAt: new Date().toISOString(),
     })
@@ -204,157 +127,125 @@ export async function generatePairId() {
     return { success: true, pairId }
   } catch (error) {
     console.error('[CloudBase] Generate pair ID error:', error)
-    return { success: false, error: error.message || error }
+    return { success: false, error: error.message || String(error) }
   }
 }
 
-// Save userA result to CloudBase
-// Structure: tests/{pairId} document with { userA: {...} }
-// STRICT: Must only be called from client-side (browser)
+/**
+ * 保存用户A的结果
+ * 严格禁止在 SSR/Worker 环境执行
+ */
 export async function saveUserA(pairId, userData) {
-  // STRICT: Only run in browser
+  // STRICT: 服务端禁止执行
   if (typeof window === 'undefined') {
-    console.warn('[CloudBase] saveUserA() called on server - CloudBase disabled on server')
-    return { success: false, error: 'This function can only run in browser' }
+    throw new Error('saveUserA should only run on client')
   }
 
   try {
-    // Ensure authentication before database operations
     await ensureAuth()
     
     const database = getDb()
     if (!database) {
-      return { success: false, error: 'Database not available' }
+      throw new Error('Database not available')
     }
     
     console.log('[CloudBase] saveUserA - pairId:', pairId)
     console.log('[CloudBase] saveUserA - userData:', userData)
     
-    // CloudBase: use doc().get() to check if document exists, then update or set
-    try {
-      // Try to get existing document
-      const existing = await database.collection('tests')
-        .doc(pairId)
-        .get()
-      
-      if (existing.data) {
-        // Update existing document
-        await database.collection('tests')
-          .doc(pairId)
-          .update({
-            userA: {
-              ...userData,
-              createdAt: new Date().toISOString(),
-            }
-          })
-        console.log('[CloudBase] saveUserA - updated existing document')
-      } else {
-        // Create new document with doc().set()
-        await database.collection('tests')
-          .doc(pairId)
-          .set({
-            createdAt: new Date().toISOString(),
-            userA: {
-              ...userData,
-              createdAt: new Date().toISOString(),
-            }
-          })
-        console.log('[CloudBase] saveUserA - created new document')
-      }
-    } catch (error) {
-      // Fallback: try direct set with doc()
-      await database.collection('tests')
-        .doc(pairId)
-        .set({
+    // 检查文档是否存在
+    const existing = await database.collection('tests').doc(pairId).get()
+    
+    if (existing.data) {
+      // 更新现有文档
+      await database.collection('tests').doc(pairId).update({
+        userA: {
+          ...userData,
           createdAt: new Date().toISOString(),
-          userA: {
-            ...userData,
-            createdAt: new Date().toISOString(),
-          }
-        })
-      console.log('[CloudBase] saveUserA - created new document (fallback)')
+        }
+      })
+      console.log('[CloudBase] saveUserA - updated existing document')
+    } else {
+      // 创建新文档
+      await database.collection('tests').doc(pairId).set({
+        createdAt: new Date().toISOString(),
+        userA: {
+          ...userData,
+          createdAt: new Date().toISOString(),
+        }
+      })
+      console.log('[CloudBase] saveUserA - created new document')
     }
     
-    // Verify the save by reading back
-    const verifyResult = await database.collection('tests')
-      .doc(pairId)
-      .get()
+    // 验证保存
+    const verifyResult = await database.collection('tests').doc(pairId).get()
     console.log('[CloudBase] saveUserA - verification read:', verifyResult.data)
     
     console.log('[CloudBase] UserA saved successfully to tests/' + pairId)
     return { success: true, pairId }
   } catch (error) {
-    console.error('Save userA error:', error)
-    return { success: false, error: error.message || error }
+    console.error('[CloudBase] Save userA error:', error)
+    return { success: false, error: error.message || String(error) }
   }
 }
 
-// Save userB result to CloudBase
-// Structure: tests/{pairId} document with { userB: {...} }
-// STRICT: Must only be called from client-side (browser)
+/**
+ * 保存用户B的结果
+ * 严格禁止在 SSR/Worker 环境执行
+ */
 export async function saveUserB(pairId, userData) {
-  // STRICT: Only run in browser
+  // STRICT: 服务端禁止执行
   if (typeof window === 'undefined') {
-    console.warn('[CloudBase] saveUserB() called on server - CloudBase disabled on server')
-    return { success: false, error: 'This function can only run in browser' }
+    throw new Error('saveUserB should only run on client')
   }
 
   try {
-    // Ensure authentication before database operations
     await ensureAuth()
     
     const database = getDb()
     if (!database) {
-      return { success: false, error: 'Database not available' }
+      throw new Error('Database not available')
     }
     
-    // CloudBase MongoDB-style: use doc() with _id to update
-    await database.collection('tests')
-      .doc(pairId)
-      .update({
-        userB: {
-          ...userData,
-          createdAt: new Date().toISOString(),
-        }
-      })
+    // 更新文档，添加 userB 字段
+    await database.collection('tests').doc(pairId).update({
+      userB: {
+        ...userData,
+        createdAt: new Date().toISOString(),
+      }
+    })
     
     console.log('[CloudBase] UserB saved successfully')
     return { success: true, pairId }
   } catch (error) {
     console.error('[CloudBase] Save userB error:', error)
-    return { success: false, error: error.message || error }
+    return { success: false, error: error.message || String(error) }
   }
 }
 
-// Get test result from CloudBase (for backward compatibility)
-// Structure: tests/{testId} document with { userA: {...} }
-// STRICT: Must only be called from client-side (browser)
+/**
+ * 获取测试结果（用户A）
+ * 严格禁止在 SSR/Worker 环境执行
+ */
 export async function getTestResult(testId) {
-  // STRICT: Only run in browser
+  // STRICT: 服务端禁止执行
   if (typeof window === 'undefined') {
-    console.warn('[CloudBase] getTestResult() called on server - CloudBase disabled on server')
-    return { success: false, error: 'This function can only run in browser' }
+    throw new Error('getTestResult should only run on client')
   }
 
   try {
-    // Ensure authentication before database operations
     await ensureAuth()
     
     const database = getDb()
     if (!database) {
-      return { success: false, error: 'Database not available' }
+      throw new Error('Database not available')
     }
     
-    // CloudBase: use doc().get() to get document by ID
-    const result = await database.collection('tests')
-      .doc(testId)
-      .get()
+    // 获取文档
+    const result = await database.collection('tests').doc(testId).get()
     
     console.log('[CloudBase] getTestResult - testId:', testId)
-    console.log('[CloudBase] getTestResult - result:', result)
     console.log('[CloudBase] getTestResult - result.data:', result.data)
     
-    // CloudBase returns data in result.data as object (not array)
     if (result.data) {
       const docData = result.data
       
@@ -371,39 +262,34 @@ export async function getTestResult(testId) {
     }
   } catch (error) {
     console.error('[CloudBase] Get test result error:', error)
-    return { success: false, error: error.message || error }
+    return { success: false, error: error.message || String(error) }
   }
 }
 
-// Get pair data (both userA and userB)
-// Structure: tests/{pairId} document with { userA: {...}, userB: {...} }
-// STRICT: Must only be called from client-side (browser)
+/**
+ * 获取配对数据（用户A和用户B）
+ * 严格禁止在 SSR/Worker 环境执行
+ */
 export async function getPairData(pairId) {
-  // STRICT: Only run in browser
+  // STRICT: 服务端禁止执行
   if (typeof window === 'undefined') {
-    console.warn('[CloudBase] getPairData() called on server - CloudBase disabled on server')
-    return { success: false, error: 'This function can only run in browser' }
+    throw new Error('getPairData should only run on client')
   }
 
   try {
-    // Ensure authentication before database operations
     await ensureAuth()
     
     const database = getDb()
     if (!database) {
-      return { success: false, error: 'Database not available' }
+      throw new Error('Database not available')
     }
     
-    // CloudBase: use doc().get() to get document by ID
-    const result = await database.collection('tests')
-      .doc(pairId)
-      .get()
+    // 获取文档
+    const result = await database.collection('tests').doc(pairId).get()
     
     console.log('[CloudBase] getPairData - pairId:', pairId)
-    console.log('[CloudBase] getPairData - result:', result)
     console.log('[CloudBase] getPairData - result.data:', result.data)
     
-    // CloudBase returns data as object (not array)
     if (result.data) {
       const pairDoc = result.data
       
@@ -425,9 +311,56 @@ export async function getPairData(pairId) {
     }
   } catch (error) {
     console.error('[CloudBase] Get pair data error:', error)
-    return { success: false, error: error.message || error }
+    return { success: false, error: error.message || String(error) }
   }
 }
 
-// Export db for backward compatibility (if needed)
-export { db }
+// 测试函数：写入数据库
+export async function testWrite() {
+  if (typeof window === 'undefined') {
+    throw new Error('testWrite should only run on client')
+  }
+
+  try {
+    await ensureAuth()
+    const database = getDb()
+    if (!database) {
+      throw new Error('Database not available')
+    }
+    const docId = `test_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    await database.collection('test').doc(docId).set({
+      hello: 'world',
+      timestamp: new Date().toISOString(),
+    })
+    console.log('[CloudBase] Test write successful')
+    return { success: true }
+  } catch (error) {
+    console.error('[CloudBase] Test write error:', error)
+    return { success: false, error: error.message || String(error) }
+  }
+}
+
+// 测试函数：读取数据库
+export async function testRead() {
+  if (typeof window === 'undefined') {
+    throw new Error('testRead should only run on client')
+  }
+
+  try {
+    await ensureAuth()
+    const database = getDb()
+    if (!database) {
+      throw new Error('Database not available')
+    }
+    const result = await database.collection('test').get()
+    const docs = result.data.map((doc) => ({
+      id: doc._id,
+      ...doc
+    }))
+    console.log('[CloudBase] Test read successful:', docs)
+    return { success: true, data: docs }
+  } catch (error) {
+    console.error('[CloudBase] Test read error:', error)
+    return { success: false, error: error.message || String(error) }
+  }
+}

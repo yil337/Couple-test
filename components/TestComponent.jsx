@@ -3,7 +3,16 @@ import { useRouter } from 'next/router'
 import Link from 'next/link'
 import { QUESTIONS } from '../src/lib/types'
 import { calculateType } from '../src/lib/calculateType'
-import { saveUserB } from '../src/lib/cloudbase'
+
+// 动态导入 CloudBase 函数，确保只在客户端执行
+const getCloudBaseFunctions = () => {
+  if (typeof window === 'undefined') {
+    return {
+      saveUserB: async () => ({ success: false, error: 'Client only' }),
+    }
+  }
+  return require('../src/lib/cloudbase')
+}
 
 export default function TestComponent({ pairId, userType }) {
   const router = useRouter()
@@ -36,6 +45,12 @@ export default function TestComponent({ pairId, userType }) {
   }
 
   const handleSubmit = async () => {
+    // STRICT: 确保只在客户端执行
+    if (typeof window === 'undefined') {
+      setError('此操作只能在浏览器中执行')
+      return
+    }
+
     if (answers.some(answer => answer === null)) {
       setError('请回答所有问题')
       return
@@ -45,6 +60,9 @@ export default function TestComponent({ pairId, userType }) {
     setError(null)
 
     try {
+      // 动态获取 CloudBase 函数
+      const { saveUserB } = getCloudBaseFunctions()
+
       const result = calculateType(answers)
 
       const userData = {
@@ -73,7 +91,7 @@ export default function TestComponent({ pairId, userType }) {
       }
     } catch (err) {
       console.error('Submit error:', err)
-      setError('提交失败，请重试')
+      setError('提交失败，请重试: ' + (err.message || String(err)))
       setIsSubmitting(false)
     }
   }
