@@ -58,16 +58,24 @@ export async function saveUserA(pairId: string, userData: any) {
       return { success: false, error: 'Supabase client not available' }
     }
 
-    // 确保 userData 是有效的 JSON 对象
-    const userDataJson = JSON.parse(JSON.stringify(userData))
+    // 确保 userData 是有效的 JSON 对象，移除任何 undefined 值
+    const cleanUserData = JSON.parse(JSON.stringify(userData, (key, value) => {
+      // 移除 undefined 值
+      if (value === undefined) {
+        return null
+      }
+      return value
+    }))
     
-    console.log('[Supabase] Saving userA data:', JSON.stringify(userDataJson, null, 2))
+    console.log('[Supabase] Saving userA data (cleaned):', JSON.stringify(cleanUserData, null, 2))
+    console.log('[Supabase] userA data type:', typeof cleanUserData)
+    console.log('[Supabase] userA is array?', Array.isArray(cleanUserData))
     
     // 直接更新记录（记录应该已经由 generatePairId 创建）
     const { error } = await ((supabase
       .from('test_results') as any)
       .update({
-        user_a: userDataJson,
+        user_a: cleanUserData,
         updated_at: new Date().toISOString(),
       })
       .eq('id', pairId)
@@ -77,14 +85,20 @@ export async function saveUserA(pairId: string, userData: any) {
     if (error) {
       // 如果更新失败（记录不存在），尝试创建新记录
         if (error.code === 'PGRST116') {
-        // 确保 userData 是有效的 JSON 对象
-        const userDataJson = JSON.parse(JSON.stringify(userData))
+        // 确保 userData 是有效的 JSON 对象，移除任何 undefined 值
+        const cleanUserData = JSON.parse(JSON.stringify(userData, (key, value) => {
+          // 移除 undefined 值
+          if (value === undefined) {
+            return null
+          }
+          return value
+        }))
         
         const { error: insertError } = await ((supabase
           .from('test_results') as any)
           .insert({
             id: pairId,
-            user_a: userDataJson,
+            user_a: cleanUserData,
             created_at: new Date().toISOString(),
           })
           .select()
@@ -127,15 +141,23 @@ export async function saveUserB(pairId: string, userData: any) {
       return { success: false, error: 'Supabase client not available' }
     }
 
-    // 确保 userData 是有效的 JSON 对象
-    const userDataJson = JSON.parse(JSON.stringify(userData))
+    // 确保 userData 是有效的 JSON 对象，移除任何 undefined 值
+    const cleanUserData = JSON.parse(JSON.stringify(userData, (key, value) => {
+      // 移除 undefined 值
+      if (value === undefined) {
+        return null
+      }
+      return value
+    }))
     
-    console.log('[Supabase] Saving userB data:', JSON.stringify(userDataJson, null, 2))
+    console.log('[Supabase] Saving userB data (cleaned):', JSON.stringify(cleanUserData, null, 2))
+    console.log('[Supabase] userB data type:', typeof cleanUserData)
+    console.log('[Supabase] userB is array?', Array.isArray(cleanUserData))
     
     const { error } = await ((supabase
       .from('test_results') as any)
       .update({
-        user_b: userDataJson,
+        user_b: cleanUserData,
         updated_at: new Date().toISOString(),
       })
       .eq('id', pairId)
@@ -224,10 +246,30 @@ export async function getPairData(pairId: string) {
     }
 
     if (data) {
-      const pairResult = {
-        userA: data.user_a || null,
-        userB: data.user_b || null,
+      // 解析 JSONB 数据（Supabase 可能返回字符串或对象）
+      let userA = null
+      let userB = null
+      
+      if (data.user_a) {
+        userA = typeof data.user_a === 'string' 
+          ? JSON.parse(data.user_a) 
+          : data.user_a
+        console.log('[Supabase] Parsed userA:', userA)
       }
+      
+      if (data.user_b) {
+        userB = typeof data.user_b === 'string' 
+          ? JSON.parse(data.user_b) 
+          : data.user_b
+        console.log('[Supabase] Parsed userB:', userB)
+      }
+      
+      const pairResult = {
+        userA: userA,
+        userB: userB,
+      }
+
+      console.log('[Supabase] Pair result:', pairResult)
 
       if (!pairResult.userA && !pairResult.userB) {
         return { success: false, error: 'Pair data not found' }
