@@ -13,8 +13,8 @@
 在 Supabase SQL Editor 中执行以下 SQL：
 
 ```sql
--- 创建 tests 表
-CREATE TABLE tests (
+-- 创建 test_results 表
+CREATE TABLE test_results (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW(),
@@ -23,19 +23,19 @@ CREATE TABLE tests (
 );
 
 -- 创建索引以提高查询性能
-CREATE INDEX idx_tests_created_at ON tests(created_at);
+CREATE INDEX idx_test_results_created_at ON test_results(created_at);
 
 -- 启用 Row Level Security (RLS)
-ALTER TABLE tests ENABLE ROW LEVEL SECURITY;
+ALTER TABLE test_results ENABLE ROW LEVEL SECURITY;
 
 -- 创建策略：允许所有人读取和写入（用于匿名访问）
-CREATE POLICY "Allow public read access" ON tests
+CREATE POLICY "Allow public read access" ON test_results
   FOR SELECT USING (true);
 
-CREATE POLICY "Allow public insert access" ON tests
+CREATE POLICY "Allow public insert access" ON test_results
   FOR INSERT WITH CHECK (true);
 
-CREATE POLICY "Allow public update access" ON tests
+CREATE POLICY "Allow public update access" ON test_results
   FOR UPDATE USING (true);
 ```
 
@@ -50,7 +50,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
 
 ## 4. 数据结构说明
 
-### tests 表结构
+### test_results 表结构
 
 - `id` (UUID): 主键，配对 ID
 - `created_at` (TIMESTAMPTZ): 创建时间

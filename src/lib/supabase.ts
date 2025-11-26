@@ -19,7 +19,7 @@ export async function generatePairId() {
     
     // 创建测试记录
     const { error } = await supabase
-      .from('tests')
+      .from('test_results')
       .insert({
         id: pairId,
         created_at: new Date().toISOString(),
@@ -57,7 +57,7 @@ export async function saveUserA(pairId: string, userData: any) {
 
     // 检查记录是否存在
     const { data: existing } = await supabase
-      .from('tests')
+      .from('test_results')
       .select('id')
       .eq('id', pairId)
       .single()
@@ -65,7 +65,7 @@ export async function saveUserA(pairId: string, userData: any) {
     if (existing) {
       // 更新现有记录
       const { error } = await supabase
-        .from('tests')
+        .from('test_results')
         .update({
           user_a: userData,
           updated_at: new Date().toISOString(),
@@ -79,7 +79,7 @@ export async function saveUserA(pairId: string, userData: any) {
     } else {
       // 创建新记录
       const { error } = await supabase
-        .from('tests')
+        .from('test_results')
         .insert({
           id: pairId,
           user_a: userData,
@@ -118,7 +118,7 @@ export async function saveUserB(pairId: string, userData: any) {
     }
 
     const { error } = await supabase
-      .from('tests')
+      .from('test_results')
       .update({
         user_b: userData,
         updated_at: new Date().toISOString(),
@@ -156,7 +156,7 @@ export async function getTestResult(testId: string) {
     }
 
     const { data, error } = await supabase
-      .from('tests')
+      .from('test_results')
       .select('user_a')
       .eq('id', testId)
       .single()
@@ -195,7 +195,7 @@ export async function getPairData(pairId: string) {
     }
 
     const { data, error } = await supabase
-      .from('tests')
+      .from('test_results')
       .select('user_a, user_b')
       .eq('id', pairId)
       .single()
