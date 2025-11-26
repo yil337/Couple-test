@@ -18,8 +18,8 @@ CREATE TABLE test_results (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW(),
-  user_a JSONB,
-  user_b JSONB
+  user_a JSONB,  -- 注意：必须是 JSONB，不是 JSONB[]
+  user_b JSONB   -- 注意：必须是 JSONB，不是 JSONB[]
 );
 
 -- 创建索引以提高查询性能
@@ -88,8 +88,22 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
 ## 5. 验证设置
 
 1. 在 Supabase Dashboard 中检查表是否创建成功
-2. 检查 RLS 策略是否已启用
-3. 测试插入一条记录验证权限
+2. **重要：检查列类型**
+   - 在 Supabase Table Editor 中，确认 `user_a` 和 `user_b` 的类型是 `jsonb`（不是 `jsonb[]`）
+   - 如果显示为 `jsonb[]`，请执行 `SUPABASE_FIX_COLUMN_TYPE.sql` 中的 SQL 修复
+3. 检查 RLS 策略是否已启用
+4. 测试插入一条记录验证权限
+
+## 6. 修复列类型错误
+
+如果 `user_b` 列被错误地定义为 `jsonb[]`（数组），请执行：
+
+```sql
+ALTER TABLE test_results 
+  ALTER COLUMN user_b TYPE JSONB USING NULL;
+```
+
+参考 `SUPABASE_FIX_COLUMN_TYPE.sql` 文件获取完整修复脚本。
 
 ## 6. 部署到 Cloudflare Pages
 
