@@ -91,35 +91,55 @@ async function ensureAuth() {
       }
       console.log('[CloudBase] App instance obtained')
 
-      // CloudBase Web SDK: 使用 persistence: "local" 初始化 auth
-      auth = appInstance.auth({
-        persistence: "local"
-      })
+      // CloudBase Web SDK: 初始化 auth（不使用参数，使用默认配置）
+      auth = appInstance.auth()
       db = appInstance.database()
       console.log('[CloudBase] Auth and database instances created')
-
-      // 检查是否已有登录状态
-      if (auth.hasLoginState()) {
-        console.log('[CloudBase] Already has login state')
-        isInitialized = true
-        return
-      }
-
-      // CloudBase Web SDK: 在浏览器中执行匿名登录
-      // 根据官方文档，应该使用 anonymousAuthProvider().signIn()
-      console.log('[CloudBase] Attempting anonymous login...')
       console.log('[CloudBase] Auth object:', auth)
       console.log('[CloudBase] Auth type:', typeof auth)
       console.log('[CloudBase] Auth methods:', Object.keys(auth || {}))
+
+      // 检查是否已有登录状态
+      if (auth && typeof auth.getLoginState === 'function') {
+        try {
+          const loginState = await auth.getLoginState()
+          if (loginState && loginState.loginType) {
+            console.log('[CloudBase] Already has login state:', loginState.loginType)
+            isInitialized = true
+            return
+          }
+        } catch (e) {
+          console.log('[CloudBase] No existing login state, will login')
+        }
+      }
+
+      // CloudBase Web SDK: 在浏览器中执行匿名登录
+      // 尝试多种可能的匿名登录方法
+      console.log('[CloudBase] Attempting anonymous login...')
       
-      // 检查 anonymousAuthProvider 方法是否存在
-      if (!auth || typeof auth.anonymousAuthProvider !== 'function') {
+      let loginResult = null
+      
+      // 方法1: 尝试 signInAnonymously() 直接方法
+      if (typeof auth.signInAnonymously === 'function') {
+        console.log('[CloudBase] Using signInAnonymously() method')
+        loginResult = await auth.signInAnonymously()
+      }
+      // 方法2: 尝试 anonymousAuthProvider().signIn()
+      else if (typeof auth.anonymousAuthProvider === 'function') {
+        console.log('[CloudBase] Using anonymousAuthProvider().signIn() method')
+        loginResult = await auth.anonymousAuthProvider().signIn()
+      }
+      // 方法3: 尝试通过 oauthInstance
+      else if (auth.oauthInstance && typeof auth.oauthInstance.signInAnonymously === 'function') {
+        console.log('[CloudBase] Using oauthInstance.signInAnonymously() method')
+        loginResult = await auth.oauthInstance.signInAnonymously()
+      }
+      // 如果都不存在，抛出详细错误
+      else {
         const availableMethods = auth ? Object.keys(auth).join(', ') : 'auth is null'
-        throw new Error(`auth.anonymousAuthProvider is not a function. Auth type: ${typeof auth}, Available methods: ${availableMethods}`)
+        throw new Error(`No anonymous login method found. Auth methods: ${availableMethods}. Please check CloudBase SDK version and documentation.`)
       }
       
-      // 使用 CloudBase Web SDK 标准方法
-      const loginResult = await auth.anonymousAuthProvider().signIn()
       console.log('[CloudBase] Anonymous login successful:', loginResult)
       
       isInitialized = true
