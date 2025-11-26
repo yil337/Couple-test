@@ -161,18 +161,6 @@ export default function Result() {
     )
   }
 
-  // 如果没有结果数据，显示加载或错误
-  if (!result) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-500 mx-auto mb-4"></div>
-          <p className="text-gray-600">加载中...</p>
-        </div>
-      </div>
-    )
-  }
-
   // 确保 result 是对象格式
   let resultObj = null
   if (result) {
@@ -183,13 +171,10 @@ export default function Result() {
         console.error('[Result] Failed to parse result string:', e)
         resultObj = null
       }
-    } else if (typeof result === 'object') {
+    } else if (typeof result === 'object' && result !== null) {
       resultObj = result
     }
   }
-  
-  console.log('[Result] resultObj:', resultObj)
-  console.log('[Result] resultObj?.resultKey:', resultObj?.resultKey)
   
   // 获取类型信息
   const resultKey = resultObj?.resultKey
@@ -199,8 +184,6 @@ export default function Result() {
         name: resultObj?.resultName || '未知型',
         desc: resultObj?.resultDesc || '无法确定类型'
       }
-  
-  console.log('[Result] typeInfo:', typeInfo)
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50 py-12 px-4">
@@ -226,6 +209,7 @@ export default function Result() {
         )}
 
         {/* Result Card */}
+        {resultObj && (
         <div className="bg-white rounded-xl shadow-lg p-8 md:p-12 mb-8">
           <div className="text-center mb-8">
             <div className="inline-block bg-gradient-to-r from-pink-500 to-purple-500 text-white text-5xl font-bold px-8 py-4 rounded-lg mb-6">
@@ -300,6 +284,7 @@ export default function Result() {
             </div>
           </div>
         </div>
+        )}
 
         {/* Pair Invitation Section */}
         {!pairId && !pairLink && (
