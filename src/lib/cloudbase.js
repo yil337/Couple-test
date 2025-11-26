@@ -90,26 +90,54 @@ async function ensureAuth() {
       // 执行匿名登录 - 使用最简单的直接方法
       console.log('[CloudBase] Starting anonymous login...')
       
-      // 方法：直接调用 signInAnonymously（如果存在）
-      if (typeof auth.signInAnonymously === 'function') {
-        await auth.signInAnonymously()
-        console.log('[CloudBase] Anonymous login successful (signInAnonymously)')
-      }
-      // 备用方法：通过 oauthInstance
-      else if (auth.oauthInstance && typeof auth.oauthInstance.signInAnonymously === 'function') {
-        await auth.oauthInstance.signInAnonymously()
-        console.log('[CloudBase] Anonymous login successful (oauthInstance.signInAnonymously)')
-      }
-      // 如果都不存在，尝试直接使用数据库（某些配置可能不需要登录）
-      else {
-        console.warn('[CloudBase] No anonymous login method found, proceeding without explicit login')
-        // 某些 CloudBase 配置允许匿名访问，直接继续
+      try {
+        // 方法：直接调用 signInAnonymously（如果存在）
+        if (typeof auth.signInAnonymously === 'function') {
+          await auth.signInAnonymously()
+          console.log('[CloudBase] Anonymous login successful (signInAnonymously)')
+        }
+        // 备用方法：通过 oauthInstance
+        else if (auth.oauthInstance && typeof auth.oauthInstance.signInAnonymously === 'function') {
+          await auth.oauthInstance.signInAnonymously()
+          console.log('[CloudBase] Anonymous login successful (oauthInstance.signInAnonymously)')
+        }
+        // 如果都不存在，尝试直接使用数据库（某些配置可能不需要登录）
+        else {
+          console.warn('[CloudBase] No anonymous login method found, proceeding without explicit login')
+          // 某些 CloudBase 配置允许匿名访问，直接继续
+        }
+      } catch (loginError) {
+        // 详细记录登录错误
+        console.error('[CloudBase] Anonymous login failed:', loginError)
+        console.error('[CloudBase] Login error details:', {
+          message: loginError?.message,
+          code: loginError?.code,
+          statusCode: loginError?.statusCode,
+          response: loginError?.response,
+          stack: loginError?.stack
+        })
+        // 403 错误通常是权限问题，但不阻止继续（某些配置可能允许匿名访问数据库）
+        if (loginError?.statusCode === 403 || loginError?.code === 403) {
+          console.warn('[CloudBase] 403 error - may be permission issue, but continuing...')
+          console.warn('[CloudBase] Please check: 1) Anonymous login enabled in CloudBase console 2) Domain added to security whitelist')
+        } else {
+          // 其他错误仍然抛出
+          throw loginError
+        }
       }
 
       isInitialized = true
       console.log('[CloudBase] Initialized successfully')
     } catch (error) {
       console.error('[CloudBase] Initialization error:', error)
+      console.error('[CloudBase] Full error details:', {
+        message: error?.message,
+        code: error?.code,
+        statusCode: error?.statusCode,
+        response: error?.response,
+        stack: error?.stack,
+        name: error?.name
+      })
       isInitialized = false
       initPromise = null
       throw error
@@ -145,9 +173,31 @@ export async function generatePairId() {
     return { success: true, pairId }
   } catch (error) {
     console.error('[CloudBase] Generate pair ID error:', error)
+    console.error('[CloudBase] Error details:', {
+      message: error?.message,
+      code: error?.code,
+      statusCode: error?.statusCode,
+      response: error?.response,
+      stack: error?.stack
+    })
+    
+    // 格式化错误信息
+    let errorMessage = 'Unknown error'
+    if (error?.message) {
+      errorMessage = error.message
+    } else if (error?.code) {
+      errorMessage = `Error code: ${error.code}`
+    } else if (error?.statusCode) {
+      errorMessage = `HTTP ${error.statusCode}`
+    } else if (typeof error === 'string') {
+      errorMessage = error
+    } else {
+      errorMessage = JSON.stringify(error)
+    }
+    
     return { 
       success: false, 
-      error: error?.message || error?.toString() || 'Unknown error'
+      error: errorMessage
     }
   }
 }
