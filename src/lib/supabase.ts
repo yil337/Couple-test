@@ -58,11 +58,16 @@ export async function saveUserA(pairId: string, userData: any) {
       return { success: false, error: 'Supabase client not available' }
     }
 
+    // 确保 userData 是有效的 JSON 对象
+    const userDataJson = JSON.parse(JSON.stringify(userData))
+    
+    console.log('[Supabase] Saving userA data:', JSON.stringify(userDataJson, null, 2))
+    
     // 直接更新记录（记录应该已经由 generatePairId 创建）
     const { error } = await ((supabase
       .from('test_results') as any)
       .update({
-        user_a: userData,
+        user_a: userDataJson,
         updated_at: new Date().toISOString(),
       })
       .eq('id', pairId)
@@ -72,11 +77,14 @@ export async function saveUserA(pairId: string, userData: any) {
     if (error) {
       // 如果更新失败（记录不存在），尝试创建新记录
         if (error.code === 'PGRST116') {
+        // 确保 userData 是有效的 JSON 对象
+        const userDataJson = JSON.parse(JSON.stringify(userData))
+        
         const { error: insertError } = await ((supabase
           .from('test_results') as any)
           .insert({
             id: pairId,
-            user_a: userData,
+            user_a: userDataJson,
             created_at: new Date().toISOString(),
           })
           .select()
@@ -119,10 +127,15 @@ export async function saveUserB(pairId: string, userData: any) {
       return { success: false, error: 'Supabase client not available' }
     }
 
+    // 确保 userData 是有效的 JSON 对象
+    const userDataJson = JSON.parse(JSON.stringify(userData))
+    
+    console.log('[Supabase] Saving userB data:', JSON.stringify(userDataJson, null, 2))
+    
     const { error } = await ((supabase
       .from('test_results') as any)
       .update({
-        user_b: userData,
+        user_b: userDataJson,
         updated_at: new Date().toISOString(),
       })
       .eq('id', pairId)
