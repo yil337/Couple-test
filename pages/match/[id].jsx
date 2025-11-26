@@ -4,14 +4,14 @@ import Link from 'next/link'
 import { TYPE_MAP, ANIMAL_MAP } from '../../src/lib/types'
 import { calculateMatch, getDynamics, getStrengths, getRisks, getAdvice } from '../../src/lib/calculateMatch'
 
-// 动态导入 CloudBase 函数，确保只在客户端执行
-const getCloudBaseFunctions = () => {
+// 动态导入 Supabase 函数，确保只在客户端执行
+const getSupabaseFunctions = () => {
   if (typeof window === 'undefined') {
     return {
       getPairData: async () => ({ success: false, error: 'Client only' }),
     }
   }
-  return require('../../src/lib/cloudbase')
+  return require('../../src/lib/supabase')
 }
 
 export default function Match() {
@@ -30,7 +30,7 @@ export default function Match() {
 
     const fetchData = async () => {
       try {
-        const { getPairData } = getCloudBaseFunctions()
+        const { getPairData } = getSupabaseFunctions()
         const result = await getPairData(id)
         if (result.success) {
           setUserA(result.data.userA)

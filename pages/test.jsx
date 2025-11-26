@@ -4,8 +4,8 @@ import Link from 'next/link'
 import { QUESTIONS } from '../src/lib/types'
 import { calculateType } from '../src/lib/calculateType'
 
-// 动态导入 CloudBase 函数，确保只在客户端执行
-const getCloudBaseFunctions = () => {
+// 动态导入 Supabase 函数，确保只在客户端执行
+const getSupabaseFunctions = () => {
   if (typeof window === 'undefined') {
     return {
       saveUserA: async () => ({ success: false, error: 'Client only' }),
@@ -13,7 +13,7 @@ const getCloudBaseFunctions = () => {
       generatePairId: async () => ({ success: false, error: 'Client only' }),
     }
   }
-  return require('../src/lib/cloudbase')
+  return require('../src/lib/supabase')
 }
 
 export default function Test() {
@@ -64,8 +64,8 @@ export default function Test() {
     setError(null)
 
     try {
-      // 动态获取 CloudBase 函数
-      const { saveUserA, saveUserB, generatePairId } = getCloudBaseFunctions()
+      // 动态获取 Supabase 函数
+      const { saveUserA, saveUserB, generatePairId } = getSupabaseFunctions()
 
       // Calculate type
       const result = calculateType(answers)

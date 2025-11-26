@@ -4,14 +4,14 @@ import Link from 'next/link'
 import { QUESTIONS } from '../src/lib/types'
 import { calculateType } from '../src/lib/calculateType'
 
-// 动态导入 CloudBase 函数，确保只在客户端执行
-const getCloudBaseFunctions = () => {
+// 动态导入 Supabase 函数，确保只在客户端执行
+const getSupabaseFunctions = () => {
   if (typeof window === 'undefined') {
     return {
       saveUserB: async () => ({ success: false, error: 'Client only' }),
     }
   }
-  return require('../src/lib/cloudbase')
+  return require('../src/lib/supabase')
 }
 
 export default function TestComponent({ pairId, userType }) {
@@ -60,8 +60,8 @@ export default function TestComponent({ pairId, userType }) {
     setError(null)
 
     try {
-      // 动态获取 CloudBase 函数
-      const { saveUserB } = getCloudBaseFunctions()
+      // 动态获取 Supabase 函数
+      const { saveUserB } = getSupabaseFunctions()
 
       const result = calculateType(answers)
 

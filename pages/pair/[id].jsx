@@ -3,14 +3,14 @@ import { useRouter } from 'next/router'
 import Link from 'next/link'
 import TestComponent from '../../components/TestComponent'
 
-// 动态导入 CloudBase 函数，确保只在客户端执行
-const getCloudBaseFunctions = () => {
+// 动态导入 Supabase 函数，确保只在客户端执行
+const getSupabaseFunctions = () => {
   if (typeof window === 'undefined') {
     return {
       getPairData: async () => ({ success: false, error: 'Client only' }),
     }
   }
-  return require('../../src/lib/cloudbase')
+  return require('../../src/lib/supabase')
 }
 
 export default function Pair() {
@@ -29,7 +29,7 @@ export default function Pair() {
 
     const fetchPairData = async () => {
       try {
-        const { getPairData } = getCloudBaseFunctions()
+        const { getPairData } = getSupabaseFunctions()
         const result = await getPairData(id)
         if (result.success) {
           setUserA(result.data.userA)

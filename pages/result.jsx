@@ -5,7 +5,7 @@ import { TYPE_MAP } from '../src/lib/types'
 import { getBaseUrl } from '../src/lib/utils'
 
 // Dynamic import to prevent SSR execution
-const getCloudBaseFunctions = () => {
+const getSupabaseFunctions = () => {
   if (typeof window === 'undefined') {
     return {
       getTestResult: async () => ({ success: false, error: 'Client only' }),
@@ -13,7 +13,7 @@ const getCloudBaseFunctions = () => {
       saveUserA: async () => ({ success: false, error: 'Client only' }),
     }
   }
-  return require('../src/lib/cloudbase')
+  return require('../src/lib/supabase')
 }
 
 export default function Result() {
@@ -43,7 +43,7 @@ export default function Result() {
 
     const fetchResult = async () => {
       try {
-        const { getTestResult } = getCloudBaseFunctions()
+        const { getTestResult } = getSupabaseFunctions()
         const resultData = await getTestResult(decodedTestId)
         if (resultData.success) {
           setResult(resultData.data)
@@ -74,7 +74,7 @@ export default function Result() {
     setError(null)
 
     try {
-      const { generatePairId, saveUserA } = getCloudBaseFunctions()
+      const { generatePairId, saveUserA } = getSupabaseFunctions()
       // Generate pair ID
       const pairResult = await generatePairId()
       if (!pairResult.success) {

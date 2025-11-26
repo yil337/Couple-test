@@ -3,15 +3,15 @@ import { useRouter } from 'next/router'
 import Link from 'next/link'
 import SharePoster from '../../components/SharePoster'
 
-// 动态导入 CloudBase 函数，确保只在客户端执行
-const getCloudBaseFunctions = () => {
+// 动态导入 Supabase 函数，确保只在客户端执行
+const getSupabaseFunctions = () => {
   if (typeof window === 'undefined') {
     return {
       getPairData: async () => ({ success: false, error: 'Client only' }),
       getTestResult: async () => ({ success: false, error: 'Client only' }),
     }
   }
-  return require('../../src/lib/cloudbase')
+  return require('../../src/lib/supabase')
 }
 
 export default function SharePage() {
@@ -28,7 +28,7 @@ export default function SharePage() {
 
     const fetchData = async () => {
       try {
-        const { getPairData, getTestResult } = getCloudBaseFunctions()
+        const { getPairData, getTestResult } = getSupabaseFunctions()
         let result
 
         // If user parameter is specified, get specific user data
