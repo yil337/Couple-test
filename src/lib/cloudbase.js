@@ -187,10 +187,17 @@ export async function generatePairId() {
       code: error.code,
       fullError: error
     })
+    // 确保返回字符串格式的错误信息，避免 [object Object]
+    let errorMessage = 'Unknown error'
+    if (error && typeof error === 'object') {
+      errorMessage = error.message || error.code || error.toString() || JSON.stringify(error)
+    } else if (error) {
+      errorMessage = String(error)
+    }
     return { 
       success: false, 
-      error: error.message || error.code || String(error),
-      details: error.stack
+      error: errorMessage,
+      details: error.stack || error.toString()
     }
   }
 }

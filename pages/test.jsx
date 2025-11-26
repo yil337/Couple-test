@@ -98,7 +98,17 @@ export default function Test() {
         const pairResult = await generatePairId()
         console.log('[Test] Pair ID result:', pairResult)
         if (!pairResult.success) {
-          const errorMsg = pairResult.error || '生成测试ID失败'
+          // 正确处理错误对象，避免显示 [object Object]
+          let errorMsg = '生成测试ID失败'
+          if (pairResult.error) {
+            if (typeof pairResult.error === 'string') {
+              errorMsg = pairResult.error
+            } else if (pairResult.error.message) {
+              errorMsg = pairResult.error.message
+            } else {
+              errorMsg = JSON.stringify(pairResult.error)
+            }
+          }
           console.error('[Test] Failed to generate pair ID:', errorMsg, pairResult)
           setError(`生成测试ID失败: ${errorMsg}`)
           setIsSubmitting(false)
