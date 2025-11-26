@@ -106,9 +106,20 @@ async function ensureAuth() {
       }
 
       // CloudBase Web SDK: 在浏览器中执行匿名登录
-      // 使用 signInAnonymously() 方法（Web SDK 标准方法）
+      // 根据官方文档，应该使用 anonymousAuthProvider().signIn()
       console.log('[CloudBase] Attempting anonymous login...')
-      const loginResult = await auth.signInAnonymously()
+      console.log('[CloudBase] Auth object:', auth)
+      console.log('[CloudBase] Auth type:', typeof auth)
+      console.log('[CloudBase] Auth methods:', Object.keys(auth || {}))
+      
+      // 检查 anonymousAuthProvider 方法是否存在
+      if (!auth || typeof auth.anonymousAuthProvider !== 'function') {
+        const availableMethods = auth ? Object.keys(auth).join(', ') : 'auth is null'
+        throw new Error(`auth.anonymousAuthProvider is not a function. Auth type: ${typeof auth}, Available methods: ${availableMethods}`)
+      }
+      
+      // 使用 CloudBase Web SDK 标准方法
+      const loginResult = await auth.anonymousAuthProvider().signIn()
       console.log('[CloudBase] Anonymous login successful:', loginResult)
       
       isInitialized = true
