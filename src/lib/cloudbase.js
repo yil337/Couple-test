@@ -53,33 +53,51 @@ export function getDb() {
 async function ensureAuth() {
   // STRICT: 服务端禁止执行
   if (typeof window === 'undefined') {
+    console.error('[CloudBase] ensureAuth called on server')
     throw new Error('ensureAuth should only run on client')
   }
 
   // 如果已经在初始化中，等待完成
   if (initPromise) {
+    console.log('[CloudBase] Waiting for existing initialization...')
     await initPromise
     return
   }
 
   // 如果已经初始化并认证，直接返回
   if (isInitialized && isAuthenticated && auth && auth.currentUser) {
+    console.log('[CloudBase] Already initialized and authenticated')
     return
   }
 
   // 开始初始化
+  console.log('[CloudBase] Starting initialization...')
   initPromise = (async () => {
     try {
       const appInstance = getCloudBaseApp()
       if (!appInstance) {
         throw new Error('CloudBase app not available')
       }
+      console.log('[CloudBase] App instance obtained')
 
       auth = appInstance.auth()
       db = appInstance.database()
+      console.log('[CloudBase] Auth and database instances created')
+
+      // 检查是否已有用户
+      const currentUser = auth.currentUser
+      if (currentUser) {
+        console.log('[CloudBase] Already has current user:', currentUser.uid)
+        isAuthenticated = true
+        isInitialized = true
+        return
+      }
 
       // 匿名登录
-      await auth.signInAnonymously()
+      console.log('[CloudBase] Attempting anonymous login...')
+      const loginResult = await auth.signInAnonymously()
+      console.log('[CloudBase] Anonymous login result:', loginResult)
+      
       isAuthenticated = true
       isInitialized = true
 
@@ -87,6 +105,13 @@ async function ensureAuth() {
       console.log('[CloudBase] Initialized successfully')
     } catch (error) {
       console.error('[CloudBase] Initialization or Anonymous login error:', error)
+      console.error('[CloudBase] Error details:', {
+        message: error.message,
+        stack: error.stack,
+        name: error.name,
+        code: error.code,
+        fullError: error
+      })
       isInitialized = false
       isAuthenticated = false
       initPromise = null
@@ -104,30 +129,60 @@ async function ensureAuth() {
 export async function generatePairId() {
   // STRICT: 服务端禁止执行
   if (typeof window === 'undefined') {
-    throw new Error('generatePairId should only run on client')
+    console.error('[CloudBase] generatePairId called on server')
+    return { success: false, error: 'generatePairId should only run on client' }
   }
 
   try {
-    await ensureAuth()
+    console.log('[CloudBase] Starting generatePairId...')
     
+    // 确保认证
+    console.log('[CloudBase] Ensuring authentication...')
+    await ensureAuth()
+    console.log('[CloudBase] Authentication ensured')
+    
+    // 获取数据库实例
     const database = getDb()
     if (!database) {
-      throw new Error('Database not available')
+      console.error('[CloudBase] Database not available')
+      return { success: false, error: 'Database not available' }
+    }
+    console.log('[CloudBase] Database instance obtained')
+    
+    // 检查认证状态
+    if (auth && auth.currentUser) {
+      console.log('[CloudBase] Current user:', auth.currentUser.uid)
+    } else {
+      console.warn('[CloudBase] No current user, but proceeding...')
     }
     
     // 生成唯一 ID
     const pairId = `pair_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    console.log('[CloudBase] Generated pairId:', pairId)
     
     // CloudBase: 使用 doc().set() 创建带自定义 ID 的文档
-    await database.collection('tests').doc(pairId).set({
+    console.log('[CloudBase] Attempting to create document...')
+    const result = await database.collection('tests').doc(pairId).set({
       createdAt: new Date().toISOString(),
     })
+    console.log('[CloudBase] Document created successfully:', result)
     
     console.log('[CloudBase] Generated pair ID:', pairId)
     return { success: true, pairId }
   } catch (error) {
     console.error('[CloudBase] Generate pair ID error:', error)
-    return { success: false, error: error.message || String(error) }
+    console.error('[CloudBase] Error details:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name,
+      code: error.code,
+      fullError: error
+    })
+    return { 
+      success: false, 
+      error: error.message || error.code || String(error),
+      details: error.stack
+    }
   }
 }
 

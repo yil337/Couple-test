@@ -94,9 +94,13 @@ export default function Test() {
         }
       } else {
         // Single user test - generate pairId and save as userA, then redirect to result
+        console.log('[Test] Generating pair ID...')
         const pairResult = await generatePairId()
+        console.log('[Test] Pair ID result:', pairResult)
         if (!pairResult.success) {
-          setError('生成测试ID失败')
+          const errorMsg = pairResult.error || '生成测试ID失败'
+          console.error('[Test] Failed to generate pair ID:', errorMsg, pairResult)
+          setError(`生成测试ID失败: ${errorMsg}`)
           setIsSubmitting(false)
           return
         }
