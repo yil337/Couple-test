@@ -7,12 +7,53 @@ let auth
 let isInitialized = false
 let isAuthenticated = false
 
+// Get database instance - STRICT client-side only
+// This function MUST only be called from browser (client-side)
+// Returns null if called on server or if database is not available
+export function getDb() {
+  // STRICT: Service-side/Edge Runtime禁止访问
+  if (typeof window === 'undefined') {
+    console.warn('[CloudBase] getDb() called on server - CloudBase disabled on server')
+    return null
+  }
+
+  // Initialize CloudBase if not already done
+  if (!isInitialized) {
+    try {
+      app = cloudbase.init({
+        env: 'cloud1-1gr3cxva723e4e6e',
+        region: 'ap-shanghai'
+      })
+
+      auth = app.auth()
+      db = app.database()
+
+      // Sign in anonymously (fire and forget for now, will be awaited in ensureAuth)
+      auth.signInAnonymously().then(() => {
+        isAuthenticated = true
+        console.log('[CloudBase] Anonymous login successful')
+      }).catch((error) => {
+        console.error('[CloudBase] Anonymous login error:', error)
+      })
+
+      isInitialized = true
+      console.log('[CloudBase] Initialized successfully')
+    } catch (error) {
+      console.error('[CloudBase] Initialization error:', error)
+      return null
+    }
+  }
+
+  return db
+}
+
 // Initialize CloudBase and ensure anonymous login
 // Only initialize on client side (browser)
 async function initCloudBase() {
-  // Check if we're in browser environment
+  // STRICT: Check if we're in browser environment
   if (typeof window === 'undefined') {
-    throw new Error('CloudBase can only be initialized in browser environment')
+    console.warn('[CloudBase] initCloudBase() called on server - CloudBase disabled on server')
+    return { app: null, db: null, auth: null }
   }
 
   if (isInitialized && app && isAuthenticated) {
@@ -33,9 +74,9 @@ async function initCloudBase() {
     try {
       await auth.signInAnonymously()
       isAuthenticated = true
-      console.log('CloudBase anonymous login successful')
+      console.log('[CloudBase] Anonymous login successful')
     } catch (authError) {
-      console.error('Anonymous login error:', authError)
+      console.error('[CloudBase] Anonymous login error:', authError)
       // Try to get current user
       const currentUser = auth.currentUser
       if (!currentUser) {
@@ -45,19 +86,20 @@ async function initCloudBase() {
     }
 
     isInitialized = true
-    console.log('CloudBase initialized successfully')
+    console.log('[CloudBase] Initialized successfully')
     return { app, db, auth }
   } catch (error) {
-    console.error('CloudBase initialization error:', error)
+    console.error('[CloudBase] Initialization error:', error)
     throw error
   }
 }
 
 // Ensure authentication before database operations
 async function ensureAuth() {
-  // Only run in browser
+  // STRICT: Only run in browser
   if (typeof window === 'undefined') {
-    throw new Error('Database operations can only run in browser environment')
+    console.warn('[CloudBase] ensureAuth() called on server - CloudBase disabled on server')
+    return
   }
 
   if (!isInitialized || !isAuthenticated) {
@@ -71,56 +113,83 @@ async function ensureAuth() {
   }
 }
 
-// Get database instance (ensures auth first)
-async function getDb() {
+// Legacy getDb function (for backward compatibility)
+// Now uses the exported getDb() function
+async function getDbLegacy() {
   await ensureAuth()
   return db
 }
 
 // Test function: Write to database
 export async function testWrite() {
+  // STRICT: Only run in browser
+  if (typeof window === 'undefined') {
+    console.warn('[CloudBase] testWrite() called on server - CloudBase disabled on server')
+    return { success: false, error: 'CloudBase can only run in browser' }
+  }
+
   try {
-    const database = await getDb()
+    const database = getDb()
+    if (!database) {
+      return { success: false, error: 'Database not available' }
+    }
     const docId = `test_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
     await database.collection('test').doc(docId).set({
       hello: 'world',
       timestamp: new Date().toISOString(),
     })
-    console.log('Test write successful')
+    console.log('[CloudBase] Test write successful')
     return { success: true }
   } catch (error) {
-    console.error('Test write error:', error)
+    console.error('[CloudBase] Test write error:', error)
     return { success: false, error: error.message || error }
   }
 }
 
 // Test function: Read from database
 export async function testRead() {
+  // STRICT: Only run in browser
+  if (typeof window === 'undefined') {
+    console.warn('[CloudBase] testRead() called on server - CloudBase disabled on server')
+    return { success: false, error: 'CloudBase can only run in browser' }
+  }
+
   try {
-    const database = await getDb()
+    const database = getDb()
+    if (!database) {
+      return { success: false, error: 'Database not available' }
+    }
     const result = await database.collection('test').get()
     const docs = result.data.map((doc) => ({
       id: doc._id,
       ...doc
     }))
-    console.log('Test read successful:', docs)
+    console.log('[CloudBase] Test read successful:', docs)
     return { success: true, data: docs }
   } catch (error) {
-    console.error('Test read error:', error)
+    console.error('[CloudBase] Test read error:', error)
     return { success: false, error: error.message || error }
   }
 }
 
 // Generate unique pair ID
 // Creates: tests/{pairId} document
+// STRICT: Must only be called from client-side (browser)
 export async function generatePairId() {
-  // Only run in browser
+  // STRICT: Only run in browser
   if (typeof window === 'undefined') {
+    console.warn('[CloudBase] generatePairId() called on server - CloudBase disabled on server')
     return { success: false, error: 'This function can only run in browser' }
   }
 
   try {
-    const database = await getDb()
+    // Ensure authentication before database operations
+    await ensureAuth()
+    
+    const database = getDb()
+    if (!database) {
+      return { success: false, error: 'Database not available' }
+    }
     
     // Generate a unique ID
     const pairId = `pair_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
@@ -131,6 +200,7 @@ export async function generatePairId() {
       createdAt: new Date().toISOString(),
     })
     
+    console.log('[CloudBase] Generated pair ID:', pairId)
     return { success: true, pairId }
   } catch (error) {
     console.error('[CloudBase] Generate pair ID error:', error)
@@ -140,14 +210,22 @@ export async function generatePairId() {
 
 // Save userA result to CloudBase
 // Structure: tests/{pairId} document with { userA: {...} }
+// STRICT: Must only be called from client-side (browser)
 export async function saveUserA(pairId, userData) {
-  // Only run in browser
+  // STRICT: Only run in browser
   if (typeof window === 'undefined') {
+    console.warn('[CloudBase] saveUserA() called on server - CloudBase disabled on server')
     return { success: false, error: 'This function can only run in browser' }
   }
 
   try {
-    const database = await getDb()
+    // Ensure authentication before database operations
+    await ensureAuth()
+    
+    const database = getDb()
+    if (!database) {
+      return { success: false, error: 'Database not available' }
+    }
     
     console.log('[CloudBase] saveUserA - pairId:', pairId)
     console.log('[CloudBase] saveUserA - userData:', userData)
@@ -211,14 +289,22 @@ export async function saveUserA(pairId, userData) {
 
 // Save userB result to CloudBase
 // Structure: tests/{pairId} document with { userB: {...} }
+// STRICT: Must only be called from client-side (browser)
 export async function saveUserB(pairId, userData) {
-  // Only run in browser
+  // STRICT: Only run in browser
   if (typeof window === 'undefined') {
+    console.warn('[CloudBase] saveUserB() called on server - CloudBase disabled on server')
     return { success: false, error: 'This function can only run in browser' }
   }
 
   try {
-    const database = await getDb()
+    // Ensure authentication before database operations
+    await ensureAuth()
+    
+    const database = getDb()
+    if (!database) {
+      return { success: false, error: 'Database not available' }
+    }
     
     // CloudBase MongoDB-style: use doc() with _id to update
     await database.collection('tests')
@@ -240,14 +326,22 @@ export async function saveUserB(pairId, userData) {
 
 // Get test result from CloudBase (for backward compatibility)
 // Structure: tests/{testId} document with { userA: {...} }
+// STRICT: Must only be called from client-side (browser)
 export async function getTestResult(testId) {
-  // Only run in browser
+  // STRICT: Only run in browser
   if (typeof window === 'undefined') {
+    console.warn('[CloudBase] getTestResult() called on server - CloudBase disabled on server')
     return { success: false, error: 'This function can only run in browser' }
   }
 
   try {
-    const database = await getDb()
+    // Ensure authentication before database operations
+    await ensureAuth()
+    
+    const database = getDb()
+    if (!database) {
+      return { success: false, error: 'Database not available' }
+    }
     
     // CloudBase MongoDB-style API: use where() to query by _id
     // CloudBase doesn't have doc() method, use where() instead
@@ -284,14 +378,22 @@ export async function getTestResult(testId) {
 
 // Get pair data (both userA and userB)
 // Structure: tests/{pairId} document with { userA: {...}, userB: {...} }
+// STRICT: Must only be called from client-side (browser)
 export async function getPairData(pairId) {
-  // Only run in browser
+  // STRICT: Only run in browser
   if (typeof window === 'undefined') {
+    console.warn('[CloudBase] getPairData() called on server - CloudBase disabled on server')
     return { success: false, error: 'This function can only run in browser' }
   }
 
   try {
-    const database = await getDb()
+    // Ensure authentication before database operations
+    await ensureAuth()
+    
+    const database = getDb()
+    if (!database) {
+      return { success: false, error: 'Database not available' }
+    }
     
     // CloudBase MongoDB-style: use where() to query by _id
     const result = await database.collection('tests')
