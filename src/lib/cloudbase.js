@@ -68,8 +68,7 @@ async function ensureAuth() {
   }
 
   // 如果已经初始化，检查登录状态
-  if (isInitialized && app) {
-    auth = app.auth()
+  if (isInitialized && app && auth) {
     if (auth.hasLoginState()) {
       console.log('[CloudBase] Already initialized and has login state')
       return
@@ -86,7 +85,10 @@ async function ensureAuth() {
       }
       console.log('[CloudBase] App instance obtained')
 
-      auth = appInstance.auth()
+      // CloudBase Web SDK: 使用 persistence: "local" 初始化 auth
+      auth = appInstance.auth({
+        persistence: "local"
+      })
       db = appInstance.database()
       console.log('[CloudBase] Auth and database instances created')
 
@@ -97,10 +99,10 @@ async function ensureAuth() {
         return
       }
 
-      // 在浏览器中执行匿名登录
+      // CloudBase Web SDK: 在浏览器中执行匿名登录
       console.log('[CloudBase] Attempting anonymous login...')
-      await auth.anonymousAuthProvider().signIn()
-      console.log('[CloudBase] Anonymous login successful')
+      const loginResult = await auth.anonymousAuthProvider().signIn()
+      console.log('[CloudBase] Anonymous login successful:', loginResult)
       
       isInitialized = true
       console.log('[CloudBase] Initialized successfully')
