@@ -29,7 +29,8 @@ export async function generatePairId() {
 
     if (error) {
       console.error('[Supabase] Create test error:', error)
-      return { success: false, error: error.message }
+      console.error('[Supabase] Error details:', JSON.stringify(error, null, 2))
+      return { success: false, error: error.message || error.code || String(error) }
     }
 
     console.log('[Supabase] Generated pair ID:', pairId)
@@ -83,11 +84,13 @@ export async function saveUserA(pairId: string, userData: any) {
 
         if (insertError) {
           console.error('[Supabase] Insert userA error:', insertError)
-          return { success: false, error: insertError.message }
+          console.error('[Supabase] Insert error details:', JSON.stringify(insertError, null, 2))
+          return { success: false, error: insertError.message || insertError.code || String(insertError) }
         }
       } else {
         console.error('[Supabase] Update userA error:', error)
-        return { success: false, error: error.message }
+        console.error('[Supabase] Update error details:', JSON.stringify(error, null, 2))
+        return { success: false, error: error.message || error.code || String(error) }
       }
     }
 
@@ -128,7 +131,8 @@ export async function saveUserB(pairId: string, userData: any) {
 
     if (error) {
       console.error('[Supabase] Save userB error:', error)
-      return { success: false, error: error.message }
+      console.error('[Supabase] Save userB error details:', JSON.stringify(error, null, 2))
+      return { success: false, error: error.message || error.code || String(error) }
     }
 
     console.log('[Supabase] UserB saved successfully')

@@ -23,6 +23,8 @@ export function getSupabaseClient() {
     console.error('[Supabase] Missing environment variables')
     console.error('[Supabase] NEXT_PUBLIC_SUPABASE_URL:', supabaseUrl ? 'Set' : 'Missing')
     console.error('[Supabase] NEXT_PUBLIC_SUPABASE_ANON_KEY:', supabaseAnonKey ? 'Set' : 'Missing')
+    console.error('[Supabase] Current environment:', process.env.NODE_ENV)
+    console.error('[Supabase] All NEXT_PUBLIC_ vars:', Object.keys(process.env).filter(k => k.startsWith('NEXT_PUBLIC_')))
     return null
   }
 

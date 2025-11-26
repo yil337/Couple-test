@@ -89,7 +89,19 @@ export default function Test() {
         if (saveResult.success) {
           router.push(`/match/${pairId}`)
         } else {
-          setError('保存结果失败，请重试')
+          // 显示详细错误信息
+          let errorMsg = '保存结果失败'
+          if (saveResult.error) {
+            if (typeof saveResult.error === 'string') {
+              errorMsg = `保存结果失败: ${saveResult.error}`
+            } else if (saveResult.error.message) {
+              errorMsg = `保存结果失败: ${saveResult.error.message}`
+            } else {
+              errorMsg = `保存结果失败: ${JSON.stringify(saveResult.error)}`
+            }
+          }
+          console.error('[Test] Save userB failed:', saveResult)
+          setError(errorMsg)
           setIsSubmitting(false)
         }
       } else {
@@ -120,7 +132,19 @@ export default function Test() {
         if (saveResult.success) {
           router.push(`/result?testId=${encodeURIComponent(testId)}`)
         } else {
-          setError('保存结果失败，请重试')
+          // 显示详细错误信息
+          let errorMsg = '保存结果失败'
+          if (saveResult.error) {
+            if (typeof saveResult.error === 'string') {
+              errorMsg = `保存结果失败: ${saveResult.error}`
+            } else if (saveResult.error.message) {
+              errorMsg = `保存结果失败: ${saveResult.error.message}`
+            } else {
+              errorMsg = `保存结果失败: ${JSON.stringify(saveResult.error)}`
+            }
+          }
+          console.error('[Test] Save userA failed:', saveResult)
+          setError(errorMsg)
           setIsSubmitting(false)
         }
       }
