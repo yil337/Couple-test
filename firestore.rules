@@ -1,28 +1,51 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Allow read/write access to tests collection
+    // Tests collection - 平衡安全性和功能性
     match /tests/{testId} {
-      // Allow read/write to the test document itself
-      allow read, write: if true;
+      // 允许所有人读取（需要公开访问配对结果）
+      allow read: if true;
       
-      // Allow read/write to userA subcollection documents
-      // Path: tests/{testId}/userA/{docId}
+      // 主文档：允许创建和更新，不允许删除
+      allow create: if true; // 创建配对ID时只需要 createdAt
+      allow update: if true; // 允许更新（用于配对状态等）
+      allow delete: if false; // 不允许删除配对
+      
+      // UserA subcollection - 验证必需字段
       match /userA/{docId} {
-        allow read, write: if true;
+        allow read: if true;
+        // 验证必需字段存在且类型正确
+        allow create: if request.resource.data.keys().hasAll([
+          'resultKey', 'resultName', 'styleScores', 'attachScores', 'answers'
+        ]) 
+        && request.resource.data.resultKey is string
+        && request.resource.data.resultName is string
+        && request.resource.data.styleScores is map
+        && request.resource.data.attachScores is map
+        && request.resource.data.answers is list;
+        allow update: if false; // 不允许更新，只能创建一次
+        allow delete: if false; // 不允许删除
       }
       
-      // Allow read/write to userB subcollection documents
-      // Path: tests/{testId}/userB/{docId}
+      // UserB subcollection - 同样的验证
       match /userB/{docId} {
-        allow read, write: if true;
+        allow read: if true;
+        allow create: if request.resource.data.keys().hasAll([
+          'resultKey', 'resultName', 'styleScores', 'attachScores', 'answers'
+        ])
+        && request.resource.data.resultKey is string
+        && request.resource.data.resultName is string
+        && request.resource.data.styleScores is map
+        && request.resource.data.attachScores is map
+        && request.resource.data.answers is list;
+        allow update: if false; // 不允许更新，只能创建一次
+        allow delete: if false; // 不允许删除
       }
     }
     
-    // Allow read/write access to test collection (for backward compatibility)
+    // Test collection (backward compatibility)
     match /test/{document=**} {
       allow read, write: if true;
     }
   }
 }
-

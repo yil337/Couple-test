@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
-import { getPairData } from '../../src/lib/firebase'
+import { getPairData } from '../../src/lib/cloudbase'
 import TestComponent from '../../components/TestComponent'
 
 export default function Pair() {

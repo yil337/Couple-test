@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
-import { getPairData } from '../../src/lib/firebase'
+import { getPairData } from '../../src/lib/cloudbase'
 import { TYPE_MAP, ANIMAL_MAP } from '../../src/lib/types'
 import { calculateMatch, getDynamics, getStrengths, getRisks, getAdvice } from '../../src/lib/calculateMatch'
 

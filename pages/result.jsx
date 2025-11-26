@@ -1,8 +1,19 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
-import { getTestResult, generatePairId, saveUserA } from '../src/lib/firebase'
 import { TYPE_MAP } from '../src/lib/types'
+
+// Dynamic import to prevent SSR execution
+const getCloudBaseFunctions = () => {
+  if (typeof window === 'undefined') {
+    return {
+      getTestResult: async () => ({ success: false, error: 'Client only' }),
+      generatePairId: async () => ({ success: false, error: 'Client only' }),
+      saveUserA: async () => ({ success: false, error: 'Client only' }),
+    }
+  }
+  return require('../src/lib/cloudbase')
+}
 
 export default function Result() {
   const router = useRouter()
@@ -24,9 +35,13 @@ export default function Result() {
       return
     }
 
+    // Decode testId if it's URL encoded
+    const decodedTestId = typeof testId === 'string' ? decodeURIComponent(testId) : testId
+
     const fetchResult = async () => {
       try {
-        const resultData = await getTestResult(testId)
+        const { getTestResult } = getCloudBaseFunctions()
+        const resultData = await getTestResult(decodedTestId)
         if (resultData.success) {
           setResult(resultData.data)
         } else {
@@ -50,6 +65,7 @@ export default function Result() {
     setError(null)
 
     try {
+      const { generatePairId, saveUserA } = getCloudBaseFunctions()
       // Generate pair ID
       const pairResult = await generatePairId()
       if (!pairResult.success) {

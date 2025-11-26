@@ -3,7 +3,7 @@ import { useRouter } from 'next/router'
 import Link from 'next/link'
 import { QUESTIONS } from '../src/lib/types'
 import { calculateType } from '../src/lib/calculateType'
-import { saveUserB } from '../src/lib/firebase'
+import { saveUserB } from '../src/lib/cloudbase'
 
 export default function TestComponent({ pairId, userType }) {
   const router = useRouter()

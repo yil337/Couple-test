@@ -3,7 +3,7 @@ import { useRouter } from 'next/router'
 import Link from 'next/link'
 import { QUESTIONS } from '../src/lib/types'
 import { calculateType } from '../src/lib/calculateType'
-import { saveUserA, saveUserB, generatePairId } from '../src/lib/firebase'
+import { saveUserA, saveUserB, generatePairId } from '../src/lib/cloudbase'
 
 export default function Test() {
   const router = useRouter()
@@ -84,7 +84,7 @@ export default function Test() {
         const testId = pairResult.pairId
         const saveResult = await saveUserA(testId, userData)
         if (saveResult.success) {
-          router.push(`/result?testId=${testId}`)
+          router.push(`/result?testId=${encodeURIComponent(testId)}`)
         } else {
           setError('保存结果失败，请重试')
           setIsSubmitting(false)
