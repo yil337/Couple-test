@@ -130,14 +130,25 @@ async function ensureAuth() {
         loginResult = await auth.anonymousAuthProvider().signIn()
       }
       // 方法3: 尝试通过 oauthInstance
-      else if (auth.oauthInstance && typeof auth.oauthInstance.signInAnonymously === 'function') {
-        console.log('[CloudBase] Using oauthInstance.signInAnonymously() method')
-        loginResult = await auth.oauthInstance.signInAnonymously()
+      else if (auth.oauthInstance) {
+        console.log('[CloudBase] Checking oauthInstance methods:', Object.keys(auth.oauthInstance || {}))
+        if (typeof auth.oauthInstance.signInAnonymously === 'function') {
+          console.log('[CloudBase] Using oauthInstance.signInAnonymously() method')
+          loginResult = await auth.oauthInstance.signInAnonymously()
+        } else if (typeof auth.oauthInstance.anonymousAuthProvider === 'function') {
+          console.log('[CloudBase] Using oauthInstance.anonymousAuthProvider().signIn() method')
+          loginResult = await auth.oauthInstance.anonymousAuthProvider().signIn()
+        } else {
+          console.error('[CloudBase] oauthInstance available but no anonymous login method found')
+          console.error('[CloudBase] oauthInstance methods:', Object.keys(auth.oauthInstance))
+        }
       }
-      // 如果都不存在，抛出详细错误
-      else {
+      
+      // 如果所有方法都失败，抛出详细错误
+      if (!loginResult) {
         const availableMethods = auth ? Object.keys(auth).join(', ') : 'auth is null'
-        throw new Error(`No anonymous login method found. Auth methods: ${availableMethods}. Please check CloudBase SDK version and documentation.`)
+        const oauthMethods = auth?.oauthInstance ? Object.keys(auth.oauthInstance).join(', ') : 'no oauthInstance'
+        throw new Error(`No anonymous login method found. Auth methods: ${availableMethods}. OAuthInstance methods: ${oauthMethods}. Please check CloudBase SDK version and documentation.`)
       }
       
       console.log('[CloudBase] Anonymous login successful:', loginResult)
