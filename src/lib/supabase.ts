@@ -17,13 +17,15 @@ export async function generatePairId() {
 
     const pairId = uuidv4()
     
-    // 创建测试记录
+    // 创建测试记录（只创建 ID，不插入数据）
     const { error } = await supabase
       .from('test_results')
       .insert({
         id: pairId,
         created_at: new Date().toISOString(),
       })
+      .select()
+      .single()
 
     if (error) {
       console.error('[Supabase] Create test error:', error)
@@ -55,39 +57,36 @@ export async function saveUserA(pairId: string, userData: any) {
       return { success: false, error: 'Supabase client not available' }
     }
 
-    // 检查记录是否存在
-    const { data: existing } = await supabase
+    // 直接更新记录（记录应该已经由 generatePairId 创建）
+    const { error } = await supabase
       .from('test_results')
-      .select('id')
+      .update({
+        user_a: userData,
+        updated_at: new Date().toISOString(),
+      })
       .eq('id', pairId)
+      .select()
       .single()
 
-    if (existing) {
-      // 更新现有记录
-      const { error } = await supabase
-        .from('test_results')
-        .update({
-          user_a: userData,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', pairId)
+    if (error) {
+      // 如果更新失败（记录不存在），尝试创建新记录
+      if (error.code === 'PGRST116') {
+        const { error: insertError } = await supabase
+          .from('test_results')
+          .insert({
+            id: pairId,
+            user_a: userData,
+            created_at: new Date().toISOString(),
+          })
+          .select()
+          .single()
 
-      if (error) {
+        if (insertError) {
+          console.error('[Supabase] Insert userA error:', insertError)
+          return { success: false, error: insertError.message }
+        }
+      } else {
         console.error('[Supabase] Update userA error:', error)
-        return { success: false, error: error.message }
-      }
-    } else {
-      // 创建新记录
-      const { error } = await supabase
-        .from('test_results')
-        .insert({
-          id: pairId,
-          user_a: userData,
-          created_at: new Date().toISOString(),
-        })
-
-      if (error) {
-        console.error('[Supabase] Insert userA error:', error)
         return { success: false, error: error.message }
       }
     }
@@ -124,6 +123,8 @@ export async function saveUserB(pairId: string, userData: any) {
         updated_at: new Date().toISOString(),
       })
       .eq('id', pairId)
+      .select()
+      .single()
 
     if (error) {
       console.error('[Supabase] Save userB error:', error)
