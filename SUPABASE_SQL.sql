@@ -19,12 +19,13 @@ CREATE INDEX IF NOT EXISTS idx_test_results_created_at ON test_results(created_a
 -- 3. 启用 Row Level Security (RLS)
 ALTER TABLE test_results ENABLE ROW LEVEL SECURITY;
 
--- 4. 删除旧策略（如果存在）
+-- 4. 删除旧策略（如果存在）- 必须先删除再创建
 DROP POLICY IF EXISTS "Allow public read access" ON test_results;
 DROP POLICY IF EXISTS "Allow public insert access" ON test_results;
 DROP POLICY IF EXISTS "Allow public update access" ON test_results;
 
 -- 5. 创建策略：允许所有人读取和写入（用于匿名访问）
+-- 使用 IF NOT EXISTS 或先 DROP 再 CREATE（PostgreSQL 不支持 IF NOT EXISTS for policies）
 CREATE POLICY "Allow public read access" ON test_results
   FOR SELECT USING (true);
 
