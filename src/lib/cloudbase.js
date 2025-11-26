@@ -5,25 +5,27 @@ let app = null
 let db = null
 let auth = null
 let isInitialized = false
-let isAuthenticated = false
 let initPromise = null
 
 /**
  * 获取 CloudBase App 实例
  * 严格禁止在 SSR/Worker 环境执行
+ * 必须在浏览器环境中初始化
  */
-export function getCloudBaseApp() {
+export function getApp() {
   // STRICT: SSR/Edge Runtime 禁止访问
   if (typeof window === 'undefined') {
-    console.warn('[CloudBase] getCloudBaseApp() called on server - CloudBase disabled on server')
+    console.warn('[CloudBase] getApp() called on server - CloudBase disabled on server')
     return null
   }
 
   if (!app) {
+    console.log('[CloudBase] Initializing CloudBase app...')
     app = cloudbase.init({
       env: 'cloud1-1gr3cxva723e4e6e',
       region: 'ap-shanghai'
     })
+    console.log('[CloudBase] CloudBase app initialized')
   }
 
   return app
@@ -34,13 +36,13 @@ export function getCloudBaseApp() {
  * 严格禁止在 SSR/Worker 环境执行
  */
 export function getDb() {
-  const app = getCloudBaseApp()
-  if (!app) {
+  const appInstance = getApp()
+  if (!appInstance) {
     return null
   }
 
   if (!db) {
-    db = app.database()
+    db = appInstance.database()
   }
 
   return db
@@ -49,6 +51,7 @@ export function getDb() {
 /**
  * 确保 CloudBase 已初始化并完成匿名登录
  * 严格禁止在 SSR/Worker 环境执行
+ * 必须在浏览器环境中执行登录
  */
 async function ensureAuth() {
   // STRICT: 服务端禁止执行
@@ -64,17 +67,20 @@ async function ensureAuth() {
     return
   }
 
-  // 如果已经初始化并认证，直接返回
-  if (isInitialized && isAuthenticated && auth && auth.currentUser) {
-    console.log('[CloudBase] Already initialized and authenticated')
-    return
+  // 如果已经初始化，检查登录状态
+  if (isInitialized && app) {
+    auth = app.auth()
+    if (auth.hasLoginState()) {
+      console.log('[CloudBase] Already initialized and has login state')
+      return
+    }
   }
 
   // 开始初始化
-  console.log('[CloudBase] Starting initialization...')
+  console.log('[CloudBase] Starting initialization and anonymous login...')
   initPromise = (async () => {
     try {
-      const appInstance = getCloudBaseApp()
+      const appInstance = getApp()
       if (!appInstance) {
         throw new Error('CloudBase app not available')
       }
@@ -84,24 +90,19 @@ async function ensureAuth() {
       db = appInstance.database()
       console.log('[CloudBase] Auth and database instances created')
 
-      // 检查是否已有用户
-      const currentUser = auth.currentUser
-      if (currentUser) {
-        console.log('[CloudBase] Already has current user:', currentUser.uid)
-        isAuthenticated = true
+      // 检查是否已有登录状态
+      if (auth.hasLoginState()) {
+        console.log('[CloudBase] Already has login state')
         isInitialized = true
         return
       }
 
-      // 匿名登录
+      // 在浏览器中执行匿名登录
       console.log('[CloudBase] Attempting anonymous login...')
-      const loginResult = await auth.signInAnonymously()
-      console.log('[CloudBase] Anonymous login result:', loginResult)
-      
-      isAuthenticated = true
-      isInitialized = true
-
+      await auth.anonymousAuthProvider().signIn()
       console.log('[CloudBase] Anonymous login successful')
+      
+      isInitialized = true
       console.log('[CloudBase] Initialized successfully')
     } catch (error) {
       console.error('[CloudBase] Initialization or Anonymous login error:', error)
@@ -113,7 +114,6 @@ async function ensureAuth() {
         fullError: error
       })
       isInitialized = false
-      isAuthenticated = false
       initPromise = null
       throw error
     }
@@ -141,6 +141,13 @@ export async function generatePairId() {
     await ensureAuth()
     console.log('[CloudBase] Authentication ensured')
     
+    // 验证登录状态
+    if (auth && !auth.hasLoginState()) {
+      console.error('[CloudBase] No login state after ensureAuth')
+      return { success: false, error: 'Authentication failed - no login state' }
+    }
+    console.log('[CloudBase] Login state verified')
+    
     // 获取数据库实例
     const database = getDb()
     if (!database) {
@@ -149,23 +156,16 @@ export async function generatePairId() {
     }
     console.log('[CloudBase] Database instance obtained')
     
-    // 检查认证状态
-    if (auth && auth.currentUser) {
-      console.log('[CloudBase] Current user:', auth.currentUser.uid)
-    } else {
-      console.warn('[CloudBase] No current user, but proceeding...')
-    }
-    
     // 生成唯一 ID
     const pairId = `pair_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
     console.log('[CloudBase] Generated pairId:', pairId)
     
     // CloudBase: 使用 doc().set() 创建带自定义 ID 的文档
     console.log('[CloudBase] Attempting to create document...')
-    const result = await database.collection('tests').doc(pairId).set({
+    await database.collection('tests').doc(pairId).set({
       createdAt: new Date().toISOString(),
     })
-    console.log('[CloudBase] Document created successfully:', result)
+    console.log('[CloudBase] Document created successfully')
     
     console.log('[CloudBase] Generated pair ID:', pairId)
     return { success: true, pairId }
@@ -193,18 +193,26 @@ export async function generatePairId() {
 export async function saveUserA(pairId, userData) {
   // STRICT: 服务端禁止执行
   if (typeof window === 'undefined') {
-    throw new Error('saveUserA should only run on client')
+    console.error('[CloudBase] saveUserA called on server')
+    return { success: false, error: 'saveUserA should only run on client' }
   }
 
   try {
+    console.log('[CloudBase] saveUserA - pairId:', pairId)
+    
     await ensureAuth()
+    
+    // 验证登录状态
+    if (auth && !auth.hasLoginState()) {
+      console.error('[CloudBase] No login state in saveUserA')
+      return { success: false, error: 'Authentication failed - no login state' }
+    }
     
     const database = getDb()
     if (!database) {
-      throw new Error('Database not available')
+      return { success: false, error: 'Database not available' }
     }
     
-    console.log('[CloudBase] saveUserA - pairId:', pairId)
     console.log('[CloudBase] saveUserA - userData:', userData)
     
     // 检查文档是否存在
@@ -250,15 +258,22 @@ export async function saveUserA(pairId, userData) {
 export async function saveUserB(pairId, userData) {
   // STRICT: 服务端禁止执行
   if (typeof window === 'undefined') {
-    throw new Error('saveUserB should only run on client')
+    console.error('[CloudBase] saveUserB called on server')
+    return { success: false, error: 'saveUserB should only run on client' }
   }
 
   try {
     await ensureAuth()
     
+    // 验证登录状态
+    if (auth && !auth.hasLoginState()) {
+      console.error('[CloudBase] No login state in saveUserB')
+      return { success: false, error: 'Authentication failed - no login state' }
+    }
+    
     const database = getDb()
     if (!database) {
-      throw new Error('Database not available')
+      return { success: false, error: 'Database not available' }
     }
     
     // 更新文档，添加 userB 字段
@@ -284,7 +299,8 @@ export async function saveUserB(pairId, userData) {
 export async function getTestResult(testId) {
   // STRICT: 服务端禁止执行
   if (typeof window === 'undefined') {
-    throw new Error('getTestResult should only run on client')
+    console.error('[CloudBase] getTestResult called on server')
+    return { success: false, error: 'getTestResult should only run on client' }
   }
 
   try {
@@ -292,7 +308,7 @@ export async function getTestResult(testId) {
     
     const database = getDb()
     if (!database) {
-      throw new Error('Database not available')
+      return { success: false, error: 'Database not available' }
     }
     
     // 获取文档
@@ -328,7 +344,8 @@ export async function getTestResult(testId) {
 export async function getPairData(pairId) {
   // STRICT: 服务端禁止执行
   if (typeof window === 'undefined') {
-    throw new Error('getPairData should only run on client')
+    console.error('[CloudBase] getPairData called on server')
+    return { success: false, error: 'getPairData should only run on client' }
   }
 
   try {
@@ -336,7 +353,7 @@ export async function getPairData(pairId) {
     
     const database = getDb()
     if (!database) {
-      throw new Error('Database not available')
+      return { success: false, error: 'Database not available' }
     }
     
     // 获取文档
@@ -373,14 +390,14 @@ export async function getPairData(pairId) {
 // 测试函数：写入数据库
 export async function testWrite() {
   if (typeof window === 'undefined') {
-    throw new Error('testWrite should only run on client')
+    return { success: false, error: 'testWrite should only run on client' }
   }
 
   try {
     await ensureAuth()
     const database = getDb()
     if (!database) {
-      throw new Error('Database not available')
+      return { success: false, error: 'Database not available' }
     }
     const docId = `test_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
     await database.collection('test').doc(docId).set({
@@ -398,14 +415,14 @@ export async function testWrite() {
 // 测试函数：读取数据库
 export async function testRead() {
   if (typeof window === 'undefined') {
-    throw new Error('testRead should only run on client')
+    return { success: false, error: 'testRead should only run on client' }
   }
 
   try {
     await ensureAuth()
     const database = getDb()
     if (!database) {
-      throw new Error('Database not available')
+      return { success: false, error: 'Database not available' }
     }
     const result = await database.collection('test').get()
     const docs = result.data.map((doc) => ({
