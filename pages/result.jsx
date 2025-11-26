@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
 import { TYPE_MAP } from '../src/lib/types'
+import { getBaseUrl } from '../src/lib/utils'
 
 // Dynamic import to prevent SSR execution
 const getCloudBaseFunctions = () => {
@@ -89,8 +90,8 @@ export default function Result() {
       const saveResult = await saveUserA(newPairId, userData)
       if (saveResult.success) {
         setPairId(newPairId)
-        const origin = typeof window !== 'undefined' ? window.location.origin : ''
-        const link = `${origin}/pair/${newPairId}`
+        const baseUrl = getBaseUrl()
+        const link = `${baseUrl}/pair/${newPairId}`
         setPairLink(link)
       } else {
         setError('保存配对数据失败')

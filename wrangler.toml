@@ -1,0 +1,6 @@
+name = "couple-test"
+compatibility_date = "2024-11-23"
+
+[build]
+command = "npx @cloudflare/next-on-pages --experimental-minify"
+

@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
 import html2canvas from 'html2canvas'
+import { getBaseUrl } from '../src/lib/utils'
 
 interface SharePosterProps {
   resultName: string
@@ -233,7 +234,7 @@ export default function SharePoster({
 
               {/* Footer */}
               <div className="text-center">
-                <p className="text-gray-400 text-xl">couple-test.vercel.app</p>
+                <p className="text-gray-400 text-xl">{getBaseUrl().replace('https://', '').replace('http://', '')}</p>
               </div>
             </div>
           </div>
@@ -334,7 +335,7 @@ export default function SharePoster({
 
             {/* Footer */}
             <div className="text-center">
-              <p className="text-gray-400 text-xs">couple-test.vercel.app</p>
+              <p className="text-gray-400 text-xs">{getBaseUrl().replace('https://', '').replace('http://', '')}</p>
             </div>
           </div>
         </div>
