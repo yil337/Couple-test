@@ -18,15 +18,14 @@ export async function generatePairId() {
     const pairId = uuidv4()
     
     // 创建测试记录（只创建 ID，不插入数据）
-    // @ts-ignore - Supabase 类型定义不完整
-    const { error } = await supabase
-      .from('test_results')
+    const { error } = await ((supabase
+      .from('test_results') as any)
       .insert({
         id: pairId,
         created_at: new Date().toISOString(),
       })
       .select()
-      .single()
+      .single())
 
     if (error) {
       console.error('[Supabase] Create test error:', error)
@@ -59,30 +58,28 @@ export async function saveUserA(pairId: string, userData: any) {
     }
 
     // 直接更新记录（记录应该已经由 generatePairId 创建）
-    // @ts-ignore - Supabase 类型定义不完整
-    const { error } = await supabase
-      .from('test_results')
+    const { error } = await ((supabase
+      .from('test_results') as any)
       .update({
         user_a: userData,
         updated_at: new Date().toISOString(),
       })
       .eq('id', pairId)
       .select()
-      .single()
+      .single())
 
     if (error) {
       // 如果更新失败（记录不存在），尝试创建新记录
         if (error.code === 'PGRST116') {
-        // @ts-ignore - Supabase 类型定义不完整
-        const { error: insertError } = await supabase
-          .from('test_results')
+        const { error: insertError } = await ((supabase
+          .from('test_results') as any)
           .insert({
             id: pairId,
             user_a: userData,
             created_at: new Date().toISOString(),
           })
           .select()
-          .single()
+          .single())
 
         if (insertError) {
           console.error('[Supabase] Insert userA error:', insertError)
@@ -119,16 +116,15 @@ export async function saveUserB(pairId: string, userData: any) {
       return { success: false, error: 'Supabase client not available' }
     }
 
-    // @ts-ignore - Supabase 类型定义不完整
-    const { error } = await supabase
-      .from('test_results')
+    const { error } = await ((supabase
+      .from('test_results') as any)
       .update({
         user_b: userData,
         updated_at: new Date().toISOString(),
       })
       .eq('id', pairId)
       .select()
-      .single()
+      .single())
 
     if (error) {
       console.error('[Supabase] Save userB error:', error)
@@ -160,11 +156,11 @@ export async function getTestResult(testId: string) {
       return { success: false, error: 'Supabase client not available' }
     }
 
-    const { data, error } = await supabase
-      .from('test_results')
+    const { data, error } = await ((supabase
+      .from('test_results') as any)
       .select('user_a')
       .eq('id', testId)
-      .single()
+      .single())
 
     if (error) {
       console.error('[Supabase] Get test result error:', error)
@@ -199,11 +195,11 @@ export async function getPairData(pairId: string) {
       return { success: false, error: 'Supabase client not available' }
     }
 
-    const { data, error } = await supabase
-      .from('test_results')
+    const { data, error } = await ((supabase
+      .from('test_results') as any)
       .select('user_a, user_b')
       .eq('id', pairId)
-      .single()
+      .single())
 
     if (error) {
       console.error('[Supabase] Get pair data error:', error)
