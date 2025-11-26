@@ -18,12 +18,13 @@ export async function generatePairId() {
     const pairId = uuidv4()
     
     // 创建测试记录（只创建 ID，不插入数据）
+    // @ts-ignore - Supabase 类型定义不完整
     const { error } = await supabase
       .from('test_results')
       .insert({
         id: pairId,
         created_at: new Date().toISOString(),
-      } as any)
+      })
       .select()
       .single()
 
@@ -58,12 +59,13 @@ export async function saveUserA(pairId: string, userData: any) {
     }
 
     // 直接更新记录（记录应该已经由 generatePairId 创建）
+    // @ts-ignore - Supabase 类型定义不完整
     const { error } = await supabase
       .from('test_results')
       .update({
         user_a: userData,
         updated_at: new Date().toISOString(),
-      } as any)
+      })
       .eq('id', pairId)
       .select()
       .single()
@@ -71,13 +73,14 @@ export async function saveUserA(pairId: string, userData: any) {
     if (error) {
       // 如果更新失败（记录不存在），尝试创建新记录
         if (error.code === 'PGRST116') {
+        // @ts-ignore - Supabase 类型定义不完整
         const { error: insertError } = await supabase
           .from('test_results')
           .insert({
             id: pairId,
             user_a: userData,
             created_at: new Date().toISOString(),
-          } as any)
+          })
           .select()
           .single()
 
@@ -116,12 +119,13 @@ export async function saveUserB(pairId: string, userData: any) {
       return { success: false, error: 'Supabase client not available' }
     }
 
+    // @ts-ignore - Supabase 类型定义不完整
     const { error } = await supabase
       .from('test_results')
       .update({
         user_b: userData,
         updated_at: new Date().toISOString(),
-      } as any)
+      })
       .eq('id', pairId)
       .select()
       .single()
