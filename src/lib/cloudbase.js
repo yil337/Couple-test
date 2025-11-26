@@ -194,9 +194,9 @@ export async function generatePairId() {
     // Generate a unique ID
     const pairId = `pair_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
     
-    // CloudBase MongoDB-style: use add() or insert with _id
-    await database.collection('tests').add({
-      _id: pairId,
+    // CloudBase: use doc().set() to create document with custom ID
+    // add() doesn't support custom _id, must use doc().set()
+    await database.collection('tests').doc(pairId).set({
       createdAt: new Date().toISOString(),
     })
     
@@ -230,14 +230,14 @@ export async function saveUserA(pairId, userData) {
     console.log('[CloudBase] saveUserA - pairId:', pairId)
     console.log('[CloudBase] saveUserA - userData:', userData)
     
-    // CloudBase MongoDB-style: use where() to find, then update or add
+    // CloudBase: use doc().get() to check if document exists, then update or set
     try {
-      // Try to find existing document
+      // Try to get existing document
       const existing = await database.collection('tests')
-        .where({ _id: pairId })
+        .doc(pairId)
         .get()
       
-      if (existing.data && existing.data.length > 0) {
+      if (existing.data) {
         // Update existing document
         await database.collection('tests')
           .doc(pairId)
@@ -249,33 +249,35 @@ export async function saveUserA(pairId, userData) {
           })
         console.log('[CloudBase] saveUserA - updated existing document')
       } else {
-        // Create new document
-        await database.collection('tests').add({
-          _id: pairId,
+        // Create new document with doc().set()
+        await database.collection('tests')
+          .doc(pairId)
+          .set({
+            createdAt: new Date().toISOString(),
+            userA: {
+              ...userData,
+              createdAt: new Date().toISOString(),
+            }
+          })
+        console.log('[CloudBase] saveUserA - created new document')
+      }
+    } catch (error) {
+      // Fallback: try direct set with doc()
+      await database.collection('tests')
+        .doc(pairId)
+        .set({
           createdAt: new Date().toISOString(),
           userA: {
             ...userData,
             createdAt: new Date().toISOString(),
           }
         })
-        console.log('[CloudBase] saveUserA - created new document')
-      }
-    } catch (error) {
-      // Fallback: try direct add with _id
-      await database.collection('tests').add({
-        _id: pairId,
-        createdAt: new Date().toISOString(),
-        userA: {
-          ...userData,
-          createdAt: new Date().toISOString(),
-        }
-      })
       console.log('[CloudBase] saveUserA - created new document (fallback)')
     }
     
     // Verify the save by reading back
     const verifyResult = await database.collection('tests')
-      .where({ _id: pairId })
+      .doc(pairId)
       .get()
     console.log('[CloudBase] saveUserA - verification read:', verifyResult.data)
     
@@ -343,21 +345,18 @@ export async function getTestResult(testId) {
       return { success: false, error: 'Database not available' }
     }
     
-    // CloudBase MongoDB-style API: use where() to query by _id
-    // CloudBase doesn't have doc() method, use where() instead
+    // CloudBase: use doc().get() to get document by ID
     const result = await database.collection('tests')
-      .where({
-        _id: testId
-      })
+      .doc(testId)
       .get()
     
     console.log('[CloudBase] getTestResult - testId:', testId)
     console.log('[CloudBase] getTestResult - result:', result)
     console.log('[CloudBase] getTestResult - result.data:', result.data)
     
-    // CloudBase returns data in result.data as an array
-    if (result.data && Array.isArray(result.data) && result.data.length > 0) {
-      const docData = result.data[0]
+    // CloudBase returns data in result.data as object (not array)
+    if (result.data) {
+      const docData = result.data
       
       if (docData && docData.userA) {
         console.log('[CloudBase] getTestResult - found userA:', docData.userA)
@@ -395,18 +394,18 @@ export async function getPairData(pairId) {
       return { success: false, error: 'Database not available' }
     }
     
-    // CloudBase MongoDB-style: use where() to query by _id
+    // CloudBase: use doc().get() to get document by ID
     const result = await database.collection('tests')
-      .where({ _id: pairId })
+      .doc(pairId)
       .get()
     
     console.log('[CloudBase] getPairData - pairId:', pairId)
     console.log('[CloudBase] getPairData - result:', result)
     console.log('[CloudBase] getPairData - result.data:', result.data)
     
-    // CloudBase returns data as an array
-    if (result.data && Array.isArray(result.data) && result.data.length > 0) {
-      const pairDoc = result.data[0]
+    // CloudBase returns data as object (not array)
+    if (result.data) {
+      const pairDoc = result.data
       
       const pairResult = {
         userA: pairDoc.userA || null,
