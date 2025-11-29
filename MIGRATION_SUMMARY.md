@@ -1,104 +1,131 @@
-# Firebase → CloudBase 迁移总结
+# 爱情模型重构完成总结
 
-## 迁移完成时间
-迁移已完成，所有 Firebase 代码已替换为 CloudBase。
+## ✅ 已完成的工作
 
-## 修改的文件
+### 1. 类型定义系统
+- ✅ 创建 `src/lib/types.ts` - 完整的 TypeScript 类型定义
+  - LoveStyle (6种)
+  - Attachment (4种)
+  - LoveLanguage (5种)
+  - SternbergType (7种)
+  - GottmanType (5种)
+  - AnimalType (24种)
+  - 问卷、个人画像、匹配度相关类型
 
-### 1. `package.json`
-- ✅ 移除：`firebase` 依赖
-- ✅ 添加：`@cloudbase/js-sdk` 依赖
+### 2. 问卷配置
+- ✅ 创建 `src/lib/questions.ts` - 26道题的完整配置
+  - Q1-Q23: 个人爱情风格与互动模式题
+  - Q24-Q26: Social Exchange 题（Likert 1-5）
+  - 每个选项包含完整的映射配置（LS, AT, LL, ST, GM）
+  - 支持权重映射（主+轻、并列等）
 
-### 2. `src/lib/firebase.js` (完全重写)
-- ✅ 移除所有 Firebase 相关导入和配置
-- ✅ 使用 `@cloudbase/js-sdk` 初始化 CloudBase
-- ✅ 实现匿名登录：`auth.signInAnonymously()`
-- ✅ 所有函数已迁移到 CloudBase API：
-  - `generatePairId()` - 生成配对ID
-  - `saveUserA()` - 保存用户A数据
-  - `saveUserB()` - 保存用户B数据
-  - `getTestResult()` - 获取测试结果
-  - `getPairData()` - 获取配对数据
-  - `testWrite()` / `testRead()` - 测试函数
+### 3. 评分模块
+- ✅ 创建 `src/lib/scoring/personalProfile.ts` - 个人画像计算
+  - 基于 Q1-Q23 答案计算
+  - 支持并列情况随机打破平局
+  - 24种动物矩阵映射
+  - 返回完整的个人画像数据
 
-### 3. `env.example`
-- ✅ 更新为 CloudBase 配置说明（无需环境变量）
+- ✅ 创建 `src/lib/scoring/relationshipTypes.ts` - 类型归类
+  - `classifySternberg()` - 将三维向量分类为7种类型
+  - `classifyGottman()` - 将向量分类为5种类型
 
-## API 映射对照
+- ✅ 创建 `src/lib/scoring/matchScore.ts` - 匹配度计算
+  - Sternberg 7×7 匹配矩阵
+  - Gottman 5×5 匹配矩阵
+  - Social Exchange 计算（基于 Q24-Q26）
+  - 动物爱情匹配度（通过动物映射到 Sternberg 类型）
+  - 权重组合：Sternberg 30% + Gottman 30% + Social 25% + Animal 15%
 
-### Firestore → CloudBase
+### 4. 动物报告数据
+- ✅ 创建 `src/lib/animalReports.ts` - 24种动物的完整报告
+  - 包含爱情风格、依恋类型、爱的语言
+  - 表达倾向、需求与不安全感、伴侣建议
 
-| Firestore API | CloudBase API | 说明 |
-|--------------|---------------|------|
-| `initializeApp()` | `cloudbase.init()` | 初始化 |
-| `getFirestore()` | `app.database()` | 获取数据库 |
-| `collection(db, 'tests')` | `db.collection('tests')` | 集合 |
-| `doc(collection, id)` | `collection.doc(id)` | 文档引用 |
-| `setDoc(doc, data)` | `doc.set(data)` | 设置文档 |
-| `getDoc(doc)` | `doc.get()` | 获取文档 |
-| `getDocs(collection)` | `collection.get()` | 获取集合 |
-| `collection(db, 'tests', id, 'userA')` | `db.collection('tests/{id}/userA')` | 子集合 |
-| `serverTimestamp()` | `new Date().toISOString()` | 时间戳 |
-| `orderBy().limit()` | `.orderBy().limit()` | 查询 |
+### 5. 前端页面更新
+- ✅ 更新 `pages/test.jsx`
+  - 使用新的 `QUESTIONS` 配置
+  - 答案格式改为 `Record<QuestionId, string>`
+  - 使用 `computePersonalProfile()` 计算个人画像
+  - 处理 Q24-Q26 Social Exchange 答案
+  - 保存完整的数据结构到 Supabase
 
-## 数据结构保持不变
+- ✅ 更新 `pages/result.jsx`
+  - 显示动物报告（完整描述）
+  - 显示爱情风格、依恋类型、爱的语言得分
+  - 显示 Sternberg 和 Gottman 类型
+  - 可视化条形图展示得分
 
+- ✅ 更新 `pages/match/[id].jsx`
+  - 使用 `computeMatchScore()` 计算匹配度
+  - 显示总匹配度百分比
+  - 显示4个维度的详细得分和贡献
+  - 显示双方动物和类型信息
+
+### 6. 数据库更新
+- ✅ 更新 `src/lib/supabase.ts`
+  - 保存时同时更新顶层字段（便于查询）
+  - 主要数据存储在 `user_a` 和 `user_b` JSONB 中
+  - 支持新字段：ls_type, at_type, animal, sternberg_type, gottman_type, scores_json
+
+- ✅ 创建 `SUPABASE_SCHEMA_UPDATE.sql`
+  - 添加新字段的 SQL 脚本
+  - 创建索引提高查询性能
+
+## 📋 待执行的操作
+
+### 1. 执行数据库更新
+在 Supabase SQL Editor 中执行：
+```sql
+-- 执行 SUPABASE_SCHEMA_UPDATE.sql
 ```
-tests/
-  └── {pairId}/
-      ├── userA/
-      │   └── {autoId}/
-      └── userB/
-          └── {autoId}/
-```
 
-## 功能验证
+### 2. 验证功能
+1. 测试问卷流程（26道题）
+2. 验证个人画像计算正确性
+3. 验证匹配度计算正确性
+4. 验证动物报告显示
+5. 验证数据保存和读取
 
-所有原有功能保持不变：
-- ✅ 生成配对ID
-- ✅ 保存用户A数据
-- ✅ 保存用户B数据
-- ✅ 读取测试结果
-- ✅ 读取配对数据
-- ✅ 匿名登录
+### 3. 完善动物报告文本
+当前 `animalReports.ts` 中的文本是基础版本，需要根据 PDF 中的完整描述补充：
+- 每个动物的详细描述
+- 完整的表达倾向、需求、建议文本
 
-## 重要变更
+## 🔍 关键特性
 
-1. **初始化方式**：
-   - 旧：Firebase 配置通过环境变量
-   - 新：CloudBase 配置硬编码在代码中（env 和 region）
+### 1. 并列情况处理
+- 当 LoveStyle 或 Attachment 得分并列时，使用随机选择打破平局
+- 确保24种动物的概率尽量均衡
 
-2. **子集合路径**：
-   - 旧：`collection(db, 'tests', pairId, 'userA')`
-   - 新：`db.collection('tests/{pairId}/userA')`
+### 2. 匹配度计算
+- 总匹配度 = Sternberg(30%) + Gottman(30%) + Social Exchange(25%) + Animal(15%)
+- 每个维度都有详细的原始分数、权重和贡献值
 
-3. **时间戳**：
-   - 旧：`serverTimestamp()` (Firestore 服务器时间)
-   - 新：`new Date().toISOString()` (客户端时间)
+### 3. 数据存储
+- 主要数据存储在 JSONB 字段中（灵活、完整）
+- 关键字段同时存储在顶层（便于查询和索引）
 
-4. **文档ID**：
-   - 旧：Firestore 自动生成
-   - 新：手动生成（`userA_${Date.now()}_${random}`）
+## 📝 注意事项
 
-## 未修改的文件（但功能正常）
+1. **题目映射**：当前 `questions.ts` 中的映射是基于提供的映射表，如果 PDF 中有更详细的映射规则，需要更新。
 
-以下文件导入 `firebase.js` 的函数，但无需修改：
-- `pages/test.jsx`
-- `pages/result.jsx`
-- `pages/pair/[id].jsx`
-- `pages/match/[id].jsx`
-- `pages/share/[pairId].tsx`
-- `components/TestComponent.jsx`
+2. **动物报告文本**：当前 `animalReports.ts` 中的文本是简化版本，需要根据 PDF 补充完整描述。
 
-## 下一步
+3. **测试覆盖**：建议添加单元测试验证：
+   - 个人画像计算的正确性
+   - 匹配度计算的正确性
+   - 并列情况的随机性
 
-1. 测试所有功能确保正常工作
-2. 如需修改 CloudBase 环境ID或区域，编辑 `src/lib/firebase.js`
-3. 部署到生产环境
+4. **性能优化**：如果数据量很大，可以考虑：
+   - 缓存计算结果
+   - 优化数据库查询
+   - 使用 CDN 加速静态资源
 
-## 注意事项
+## 🎯 下一步
 
-- CloudBase 使用匿名登录，无需配置认证
-- 所有数据操作需要先初始化 CloudBase
-- 子集合使用路径字符串格式：`tests/{pairId}/userA`
-
+1. 执行数据库更新脚本
+2. 测试完整流程
+3. 根据测试结果调整和优化
+4. 补充完整的动物报告文本
+5. 部署到生产环境

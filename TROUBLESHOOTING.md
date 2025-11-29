@@ -100,3 +100,4 @@ CREATE POLICY "Allow public update access" ON test_results
 - `42P01` → 表不存在（需要创建表）
 - `Network error` → 网络问题或环境变量未配置
 
+

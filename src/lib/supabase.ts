@@ -71,13 +71,37 @@ export async function saveUserA(pairId: string, userData: any) {
     console.log('[Supabase] userA data type:', typeof cleanUserData)
     console.log('[Supabase] userA is array?', Array.isArray(cleanUserData))
     
+    // 提取关键字段（如果存在）用于顶层存储（便于查询）
+    const personalProfile = cleanUserData.personalProfile || {}
+    const updateData: any = {
+      user_a: cleanUserData,
+      updated_at: new Date().toISOString(),
+    }
+    
+    // 如果存在个人画像数据，同时更新顶层字段
+    if (personalProfile.animal) {
+      updateData.animal = personalProfile.animal
+    }
+    if (personalProfile.primaryLoveStyle) {
+      updateData.ls_type = personalProfile.primaryLoveStyle
+    }
+    if (personalProfile.primaryAttachment) {
+      updateData.at_type = personalProfile.primaryAttachment
+    }
+    if (cleanUserData.sternbergType) {
+      updateData.sternberg_type = cleanUserData.sternbergType
+    }
+    if (cleanUserData.gottmanType) {
+      updateData.gottman_type = cleanUserData.gottmanType
+    }
+    if (personalProfile) {
+      updateData.scores_json = personalProfile
+    }
+    
     // 直接更新记录（记录应该已经由 generatePairId 创建）
     const { error } = await ((supabase
       .from('test_results') as any)
-      .update({
-        user_a: cleanUserData,
-        updated_at: new Date().toISOString(),
-      })
+      .update(updateData)
       .eq('id', pairId)
       .select()
       .single())
@@ -94,13 +118,36 @@ export async function saveUserA(pairId: string, userData: any) {
           return value
         }))
         
+        // 提取关键字段用于顶层存储
+        const personalProfile = cleanUserData.personalProfile || {}
+        const insertData: any = {
+          id: pairId,
+          user_a: cleanUserData,
+          created_at: new Date().toISOString(),
+        }
+        
+        if (personalProfile.animal) {
+          insertData.animal = personalProfile.animal
+        }
+        if (personalProfile.primaryLoveStyle) {
+          insertData.ls_type = personalProfile.primaryLoveStyle
+        }
+        if (personalProfile.primaryAttachment) {
+          insertData.at_type = personalProfile.primaryAttachment
+        }
+        if (cleanUserData.sternbergType) {
+          insertData.sternberg_type = cleanUserData.sternbergType
+        }
+        if (cleanUserData.gottmanType) {
+          insertData.gottman_type = cleanUserData.gottmanType
+        }
+        if (personalProfile) {
+          insertData.scores_json = personalProfile
+        }
+        
         const { error: insertError } = await ((supabase
           .from('test_results') as any)
-          .insert({
-            id: pairId,
-            user_a: cleanUserData,
-            created_at: new Date().toISOString(),
-          })
+          .insert(insertData)
           .select()
           .single())
 
@@ -154,12 +201,19 @@ export async function saveUserB(pairId: string, userData: any) {
     console.log('[Supabase] userB data type:', typeof cleanUserData)
     console.log('[Supabase] userB is array?', Array.isArray(cleanUserData))
     
+    // 提取关键字段（如果存在）用于顶层存储
+    const personalProfile = cleanUserData.personalProfile || {}
+    const updateData: any = {
+      user_b: cleanUserData,
+      updated_at: new Date().toISOString(),
+    }
+    
+    // 注意：userB 的顶层字段可以用于查询，但主要数据在 user_b JSONB 中
+    // 如果需要，可以在这里添加 userB 的顶层字段更新
+    
     const { error } = await ((supabase
       .from('test_results') as any)
-      .update({
-        user_b: cleanUserData,
-        updated_at: new Date().toISOString(),
-      })
+      .update(updateData)
       .eq('id', pairId)
       .select()
       .single())
