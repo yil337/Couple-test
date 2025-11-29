@@ -8,6 +8,8 @@ import { AnimalType } from './types'
 export interface AnimalReport {
   /** 动物名称 */
   name: AnimalType
+  /** 表情符号 */
+  emoji: string
   /** 开头介绍 */
   description?: string
   /** 主要爱情风格（完整描述） */
@@ -25,12 +27,47 @@ export interface AnimalReport {
 }
 
 /**
+ * 动物卡片背景颜色配置
+ */
+export const ANIMAL_COLORS: Record<AnimalType, {
+  gradient: string
+  cardBg: string
+  badgeBg: string
+}> = {
+  海豚: { gradient: 'from-blue-400 to-cyan-300', cardBg: 'bg-blue-50', badgeBg: 'bg-blue-100' },
+  刺猬: { gradient: 'from-gray-400 to-gray-300', cardBg: 'bg-gray-50', badgeBg: 'bg-gray-100' },
+  猫: { gradient: 'from-orange-400 to-amber-300', cardBg: 'bg-orange-50', badgeBg: 'bg-orange-100' },
+  孔雀: { gradient: 'from-purple-500 to-pink-400', cardBg: 'bg-purple-50', badgeBg: 'bg-purple-100' },
+  金毛犬: { gradient: 'from-yellow-400 to-amber-300', cardBg: 'bg-yellow-50', badgeBg: 'bg-yellow-100' },
+  犀牛: { gradient: 'from-gray-600 to-gray-500', cardBg: 'bg-gray-50', badgeBg: 'bg-gray-100' },
+  海狸: { gradient: 'from-brown-500 to-amber-600', cardBg: 'bg-amber-50', badgeBg: 'bg-amber-100' },
+  狼: { gradient: 'from-gray-700 to-gray-600', cardBg: 'bg-gray-50', badgeBg: 'bg-gray-100' },
+  大象: { gradient: 'from-gray-500 to-gray-400', cardBg: 'bg-gray-50', badgeBg: 'bg-gray-100' },
+  树懒: { gradient: 'from-green-600 to-emerald-500', cardBg: 'bg-green-50', badgeBg: 'bg-green-100' },
+  雪兔: { gradient: 'from-white to-gray-100', cardBg: 'bg-gray-50', badgeBg: 'bg-gray-100' },
+  乌龟: { gradient: 'from-green-500 to-teal-400', cardBg: 'bg-green-50', badgeBg: 'bg-green-100' },
+  雪貂: { gradient: 'from-white to-gray-200', cardBg: 'bg-gray-50', badgeBg: 'bg-gray-100' },
+  猫头鹰: { gradient: 'from-amber-600 to-yellow-500', cardBg: 'bg-amber-50', badgeBg: 'bg-amber-100' },
+  鹿: { gradient: 'from-amber-400 to-yellow-300', cardBg: 'bg-amber-50', badgeBg: 'bg-amber-100' },
+  马: { gradient: 'from-brown-400 to-amber-500', cardBg: 'bg-amber-50', badgeBg: 'bg-amber-100' },
+  山猫: { gradient: 'from-orange-500 to-red-400', cardBg: 'bg-orange-50', badgeBg: 'bg-orange-100' },
+  水獭: { gradient: 'from-cyan-400 to-blue-300', cardBg: 'bg-cyan-50', badgeBg: 'bg-cyan-100' },
+  狐狸: { gradient: 'from-orange-500 to-red-400', cardBg: 'bg-orange-50', badgeBg: 'bg-orange-100' },
+  浣熊: { gradient: 'from-gray-600 to-gray-500', cardBg: 'bg-gray-50', badgeBg: 'bg-gray-100' },
+  章鱼: { gradient: 'from-purple-400 to-pink-300', cardBg: 'bg-purple-50', badgeBg: 'bg-purple-100' },
+  企鹅: { gradient: 'from-slate-600 to-gray-500', cardBg: 'bg-slate-50', badgeBg: 'bg-slate-100' },
+  仓鼠: { gradient: 'from-amber-400 to-yellow-300', cardBg: 'bg-amber-50', badgeBg: 'bg-amber-100' },
+  天鹅: { gradient: 'from-white to-gray-100', cardBg: 'bg-gray-50', badgeBg: 'bg-gray-100' }
+}
+
+/**
  * 动物报告数据
  * 注意：这里只包含基础结构，完整文本需要根据 PDF 补充
  */
 export const ANIMAL_REPORTS: Record<AnimalType, AnimalReport> = {
   海豚: {
     name: '海豚',
+    emoji: '🐬',
     description: '你的动物型人格是海豚，你既有海豚的阳光明亮，又有海豚的细腻治愈。',
     loveStyle: `Lee's Love Style（激情型 Passionate）
 
@@ -45,6 +82,7 @@ export const ANIMAL_REPORTS: Record<AnimalType, AnimalReport> = {
   },
   刺猬: {
     name: '刺猬',
+    emoji: '🦔',
     description: '你的动物型人格是刺猬，你既有刺猬强烈又直白的情感，又有刺猬那份敏感与小心翼翼。',
     loveStyle: `Lee's Love Style（激情 Passion）
 
@@ -59,6 +97,7 @@ export const ANIMAL_REPORTS: Record<AnimalType, AnimalReport> = {
   },
   猫: {
     name: '猫',
+    emoji: '🐈',
     description: '你的动物型人格是猫，你既有小猫的热情可爱，又有小猫独有的神秘矜贵。',
     loveStyle: `Lee's Love Style（激情 Passion）
 
@@ -73,6 +112,7 @@ export const ANIMAL_REPORTS: Record<AnimalType, AnimalReport> = {
   },
   孔雀: {
     name: '孔雀',
+    emoji: '🦚',
     description: '你的动物型人格是孔雀，你既有孔雀的绚烂热情，又有孔雀那份需要被看见的敏感与骄傲。',
     loveStyle: `Lee's Love Style（激情 Passion）
 
@@ -87,6 +127,7 @@ export const ANIMAL_REPORTS: Record<AnimalType, AnimalReport> = {
   },
   金毛犬: {
     name: '金毛犬',
+    emoji: '🐕',
     description: '你的动物型人格是金毛犬，你既有金毛犬的温暖，也有金毛犬那份踏实可靠的力量。',
     loveStyle: `Lee's Love Style（友谊型 Storge）
 
@@ -101,6 +142,7 @@ export const ANIMAL_REPORTS: Record<AnimalType, AnimalReport> = {
   },
   犀牛: {
     name: '犀牛',
+    emoji: '🦏',
     description: '你的动物型人格是犀牛，你既有犀牛的坚定务实，又有犀牛那份可靠沉稳的力量。',
     loveStyle: `Lee's Love Style（实用 Pragma）
 
@@ -115,6 +157,7 @@ export const ANIMAL_REPORTS: Record<AnimalType, AnimalReport> = {
   },
   海狸: {
     name: '海狸',
+    emoji: '🦫',
     description: '你的动物型人格是海狸，你既有海狸的认真负责，又有海狸的那份敏感。',
     loveStyle: `Lee's Love Style（实用 Pragma）
 
@@ -129,6 +172,7 @@ export const ANIMAL_REPORTS: Record<AnimalType, AnimalReport> = {
   },
   狼: {
     name: '狼',
+    emoji: '🐺',
     description: '你的动物型人格是狼，你既有狼的深情坚定，又有狼那份热烈的执着。',
     loveStyle: `Lee's Love Style（痴狂 Mania）
 
@@ -143,6 +187,7 @@ export const ANIMAL_REPORTS: Record<AnimalType, AnimalReport> = {
   },
   大象: {
     name: '大象',
+    emoji: '🐘',
     description: '你的动物型人格是大象，你既有大象的温柔善良，又有大象那份深情稳固的力量。',
     loveStyle: `Lee's Love Style（利他 Agape）
 
@@ -157,6 +202,7 @@ export const ANIMAL_REPORTS: Record<AnimalType, AnimalReport> = {
   },
   树懒: {
     name: '树懒',
+    emoji: '🦥',
     description: '你的动物型人格是树懒，你既有树懒的慢热，又有树懒那份温柔的贴心。',
     loveStyle: `Lee's Love Style（利他 Agape）
 
@@ -171,6 +217,7 @@ export const ANIMAL_REPORTS: Record<AnimalType, AnimalReport> = {
   },
   乌龟: {
     name: '乌龟',
+    emoji: '🐢',
     description: '你的动物型人格是乌龟，你既有乌龟的安静踏实，又有乌龟那份慢热的珍贵。',
     loveStyle: `Lee's Love Style（友谊 Storge）
 
@@ -185,6 +232,7 @@ export const ANIMAL_REPORTS: Record<AnimalType, AnimalReport> = {
   },
   雪貂: {
     name: '雪貂',
+    emoji: '🦡',
     description: '你的动物型人格是雪貂，你既有雪貂的温柔贴心，又有雪貂的那份敏感。',
     loveStyle: `Lee's Love Style（友谊 Storge）
 
@@ -199,6 +247,7 @@ export const ANIMAL_REPORTS: Record<AnimalType, AnimalReport> = {
   },
   猫头鹰: {
     name: '猫头鹰',
+    emoji: '🦉',
     description: '你的动物型人格是猫头鹰，你既有猫头鹰的冷静理智，又有猫头鹰那份独立沉稳。',
     loveStyle: `Lee's Love Style（实用 Pragma）
 
@@ -213,6 +262,7 @@ export const ANIMAL_REPORTS: Record<AnimalType, AnimalReport> = {
   },
   鹿: {
     name: '鹿',
+    emoji: '🦌',
     description: '你的动物型人格是小鹿，你既有鹿的细腻敏感，又有鹿那份谨慎的温柔。',
     loveStyle: `Lee's Love Style（实用 Pragma）
 
@@ -227,6 +277,7 @@ export const ANIMAL_REPORTS: Record<AnimalType, AnimalReport> = {
   },
   马: {
     name: '马',
+    emoji: '🐎',
     description: '你的动物型人格是马，你既有马的雷厉风行，又有马的那份细腻敏感。',
     loveStyle: `Lee's Love Style（痴狂 Mania）
 
@@ -241,6 +292,7 @@ export const ANIMAL_REPORTS: Record<AnimalType, AnimalReport> = {
   },
   山猫: {
     name: '山猫',
+    emoji: '🐆',
     description: '你的动物型人格是山猫，你既有山猫的情绪深度，又有山猫那份易受伤的敏锐。',
     loveStyle: `Lee's Love Style（痴狂 Mania）
 
@@ -255,6 +307,7 @@ export const ANIMAL_REPORTS: Record<AnimalType, AnimalReport> = {
   },
   水獭: {
     name: '水獭',
+    emoji: '🦦',
     description: '你的动物型人格是水獭，你既有水獭的调皮灵动，又有水獭天然的温柔治愈。',
     loveStyle: `Lee's Love Style（游戏 Ludus）
 
@@ -269,6 +322,7 @@ export const ANIMAL_REPORTS: Record<AnimalType, AnimalReport> = {
   },
   狐狸: {
     name: '狐狸',
+    emoji: '🦊',
     description: '你的动物型人格是狐狸，你既有狐狸的聪明与幽默，又有狐狸独特的可爱灵动。',
     loveStyle: `Lee's Love Style（游戏 Ludus）
 
@@ -283,6 +337,7 @@ export const ANIMAL_REPORTS: Record<AnimalType, AnimalReport> = {
   },
   浣熊: {
     name: '浣熊',
+    emoji: '🦝',
     description: '你的动物型人格是浣熊，你既有浣熊的灵动可爱，又有浣熊那份小心翼翼的敏感。',
     loveStyle: `Lee's Love Style（游戏 Ludus）
 
@@ -297,6 +352,7 @@ export const ANIMAL_REPORTS: Record<AnimalType, AnimalReport> = {
   },
   章鱼: {
     name: '章鱼',
+    emoji: '🐙',
     description: '你的动物型人格是章鱼，你既有章鱼的聪明机灵，又有章鱼的柔软脆弱。',
     loveStyle: `Lee's Love Style（游戏 Ludus）
 
@@ -311,6 +367,7 @@ export const ANIMAL_REPORTS: Record<AnimalType, AnimalReport> = {
   },
   企鹅: {
     name: '企鹅',
+    emoji: '🐧',
     description: '你的动物型人格是企鹅，你既有企鹅的可爱黏人，又有企鹅那份真诚执着的深情。',
     loveStyle: `Lee's Love Style（友谊 Storge）
 
@@ -325,6 +382,7 @@ export const ANIMAL_REPORTS: Record<AnimalType, AnimalReport> = {
   },
   仓鼠: {
     name: '仓鼠',
+    emoji: '🐹',
     description: '你的动物型人格是仓鼠，你既有仓鼠的温柔贴心，又有仓鼠的敏感努力。',
     loveStyle: `Lee's Love Style（利他 Agape）
 
@@ -339,6 +397,7 @@ export const ANIMAL_REPORTS: Record<AnimalType, AnimalReport> = {
   },
   天鹅: {
     name: '天鹅',
+    emoji: '🦢',
     description: '你的动物型人格是天鹅，你既有天鹅的深情执着，又有天鹅那份坚贞不渝的忠诚。',
     loveStyle: `Lee's Love Style（痴狂 Mania）
 
@@ -353,6 +412,7 @@ export const ANIMAL_REPORTS: Record<AnimalType, AnimalReport> = {
   },
   雪兔: {
     name: '雪兔',
+    emoji: '🐇',
     description: '你的动物型人格是雪兔，你既有雪兔的温柔善良，又有雪兔容易受伤的敏锐。',
     loveStyle: `Lee's Love Style（利他 Agape）
 

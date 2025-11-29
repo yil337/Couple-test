@@ -1,6 +1,12 @@
 /**
  * 爱情模型类型定义
- * 基于 Sternberg 三角理论、Gottman 方法、Lee 爱情风格、成人依恋理论等
+ * 基于六大心理学理论模型：
+ * 1. Lee's Love Style（爱情风格模型）
+ * 2. Adult Attachment Theory（成人依恋理论）
+ * 3. Five Love Languages（五种爱的语言）
+ * 4. Sternberg's Triangular Theory（爱情三角理论）
+ * 5. Gottman Method（戈特曼方法）
+ * 6. Social Exchange Theory（社会交换理论）
  */
 
 // ==================== 基础类型 ====================

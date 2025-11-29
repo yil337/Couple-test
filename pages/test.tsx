@@ -5,6 +5,7 @@ import { QUESTIONS } from '../src/lib/questions'
 import { computePersonalProfile } from '../src/lib/scoring/personalProfile'
 import { classifySternberg, classifyGottman } from '../src/lib/scoring/relationshipTypes'
 import { QuestionId } from '../src/lib/types'
+import { getQuestionThemeClass } from '../src/lib/questionThemes'
 
 // 动态导入 Supabase 函数，确保只在客户端执行
 const getSupabaseFunctions = () => {
@@ -201,7 +202,7 @@ export default function Test() {
   const currentAnswer = answers[question.id]
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50 py-8 px-4">
+    <div className="min-h-screen py-8 px-4">
       <div className="max-w-3xl mx-auto">
         {/* Header */}
         <div className="mb-8">
@@ -246,14 +247,15 @@ export default function Test() {
           <div className="space-y-3">
             {question.options.map((option) => {
               const isSelected = currentAnswer === option.key
+              const themeClass = getQuestionThemeClass(question.id)
               return (
                 <button
                   key={option.key}
                   onClick={() => handleAnswer(option.key)}
-                  className={`w-full text-left p-4 rounded-lg border-2 transition-all duration-200 ${
+                  className={`quiz-option w-full text-left p-4 rounded-lg transition-colors duration-200 ${themeClass} ${
                     isSelected
-                      ? 'border-pink-500 bg-pink-50 text-pink-900'
-                      : 'border-gray-200 bg-white text-gray-700 hover:border-pink-300 hover:bg-pink-50'
+                      ? 'option-selected text-blue-900'
+                      : 'text-gray-700'
                   }`}
                 >
                   <span className="font-medium">{option.key}. {option.text}</span>

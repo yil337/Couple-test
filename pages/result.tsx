@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
 import { getAnimalReport } from '../src/lib/animalReports'
+import { AnimalType } from '../src/lib/types'
+import { getAnimalCardStyle, getAnimalTypes } from '../src/lib/animalCardStyles'
 
 // Dynamic import to prevent SSR execution
 const getSupabaseFunctions = () => {
@@ -126,7 +128,7 @@ export default function Result() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-500 mx-auto mb-4"></div>
           <p className="text-gray-600">加载中...</p>
@@ -137,7 +139,7 @@ export default function Result() {
 
   if (error && !result) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="max-w-2xl mx-auto px-4 text-center">
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-6">
             {error || '未找到测试结果'}
@@ -157,6 +159,24 @@ export default function Result() {
   const personalProfile = result?.personalProfile || {}
   const animal = personalProfile.animal || result?.resultName || '海豚'
   const animalReport = getAnimalReport(animal as any)
+  
+  // 获取动物的爱情风格和依恋类型
+  const { loveStyle, attachment } = getAnimalTypes(animal as AnimalType)
+  
+  // 获取Sternberg向量（如果有）
+  const sternbergVector = personalProfile.sternbergVector || {
+    intimacy: 0,
+    passion: 0,
+    commitment: 0
+  }
+  
+  // 获取完整的卡片样式配置
+  const cardStyle = getAnimalCardStyle(
+    animal as AnimalType,
+    loveStyle,
+    attachment,
+    sternbergVector
+  )
 
   // 获取得分数据
   const loveStyleScores = personalProfile.loveStyleScores || result?.styleScores || {}
@@ -195,7 +215,7 @@ export default function Result() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50 py-12 px-4">
+    <div className="min-h-screen py-12 px-4">
       <div className="max-w-3xl mx-auto">
         {/* Header */}
         <div className="mb-8 text-center">
@@ -219,54 +239,77 @@ export default function Result() {
 
         {/* Animal Result Card */}
         {result && (
-          <div className="bg-white rounded-xl shadow-lg p-8 md:p-12 mb-8">
+          <div className={`animal-card ${cardStyle.texture} ${cardStyle.border.glow} p-8 md:p-12 mb-8 transition-all relative`}>
             <div className="text-center mb-8">
-              <div className="inline-block bg-gradient-to-r from-pink-500 to-purple-500 text-white text-5xl font-bold px-8 py-4 rounded-lg mb-6">
-                {animal}
+              <div className={`inline-block bg-white text-gray-900 text-5xl font-bold px-8 py-4 rounded-2xl mb-6 transform hover:scale-105 transition-transform ${cardStyle.border.glow}`}>
+                <span className={`${cardStyle.emoji.size} ${cardStyle.emoji.position} ${cardStyle.emoji.transform} ${cardStyle.emoji.shadow} inline-block`}>
+                  {animalReport.emoji}
+                </span>
+                <span>{animal}</span>
               </div>
-              <div className="text-gray-600 text-sm mb-4">
+              <div className={`${cardStyle.tag.class} inline-block px-4 py-2 text-gray-800 text-sm font-medium mb-4`}>
+                <span className="mr-1">{cardStyle.theme.icon}</span>
                 {loveStyleNames[primaryLoveStyle] || primaryLoveStyle} × {attachmentNames[primaryAttachment] || primaryAttachment}
               </div>
             </div>
 
             {/* Animal Description */}
             {animalReport.description && (
-              <div className="bg-blue-50 rounded-lg p-6 mb-8">
+              <div className="bg-white bg-opacity-80 rounded-lg p-6 mb-8 backdrop-blur-sm relative z-10">
                 <p className="text-gray-800 text-lg leading-relaxed">
                   {animalReport.description}
                 </p>
               </div>
             )}
 
-            {/* Animal Report */}
-            <div className="bg-gray-50 rounded-lg p-6 mb-8">
-              <h2 className="text-xl font-semibold text-gray-800 mb-4">你的爱情风格</h2>
-              <div className="text-gray-700 text-base leading-relaxed mb-4 whitespace-pre-line">
-                {animalReport.loveStyle}
+            {/* Theory-Based Report Blocks */}
+            <div className="space-y-6 mb-8 relative z-10">
+              {/* Lee's Love Style */}
+              <div className="bg-white bg-opacity-80 rounded-lg p-6 backdrop-blur-sm border-l-4 border-pink-500 pl-4">
+                <h3 className="text-xl font-semibold text-gray-800 mb-2">
+                  Lee's Love Style（李的爱情风格理论）
+                </h3>
+                <div className="text-gray-700 text-base leading-relaxed whitespace-pre-line">
+                  {animalReport.loveStyle}
+                </div>
               </div>
-              <div className="text-gray-700 text-base leading-relaxed mb-4 whitespace-pre-line">
-                {animalReport.attachment}
+
+              {/* Adult Attachment Theory */}
+              <div className="bg-white bg-opacity-80 rounded-lg p-6 backdrop-blur-sm border-l-4 border-purple-500 pl-4">
+                <h3 className="text-xl font-semibold text-gray-800 mb-2">
+                  Adult Attachment Theory（成人依恋理论）
+                </h3>
+                <div className="text-gray-700 text-base leading-relaxed whitespace-pre-line">
+                  {animalReport.attachment}
+                </div>
               </div>
-              <div className="text-gray-700 text-base leading-relaxed mb-4">
-                <strong>Love Language:</strong> {animalReport.loveLanguage}
+
+              {/* Five Love Languages */}
+              <div className="bg-white bg-opacity-80 rounded-lg p-6 backdrop-blur-sm border-l-4 border-blue-500 pl-4">
+                <h3 className="text-xl font-semibold text-gray-800 mb-2">
+                  Five Love Languages（五种爱的语言）
+                </h3>
+                <div className="text-gray-700 text-base leading-relaxed">
+                  {animalReport.loveLanguage}
+                </div>
               </div>
             </div>
 
-            <div className="bg-gray-50 rounded-lg p-6 mb-8">
+            <div className="bg-white bg-opacity-80 rounded-lg p-6 mb-8 backdrop-blur-sm relative z-10">
               <h2 className="text-xl font-semibold text-gray-800 mb-4">亲密关系中的表达倾向</h2>
               <p className="text-gray-700 text-base leading-relaxed whitespace-pre-line">
                 {animalReport.expression}
               </p>
             </div>
 
-            <div className="bg-gray-50 rounded-lg p-6 mb-8">
+            <div className="bg-white bg-opacity-80 rounded-lg p-6 mb-8 backdrop-blur-sm relative z-10">
               <h2 className="text-xl font-semibold text-gray-800 mb-4">亲密关系中的需求与不安全感来源</h2>
               <p className="text-gray-700 text-base leading-relaxed whitespace-pre-line">
                 {animalReport.needs}
               </p>
             </div>
 
-            <div className="bg-gray-50 rounded-lg p-6 mb-8">
+            <div className="bg-white bg-opacity-80 rounded-lg p-6 mb-8 backdrop-blur-sm relative z-10">
               <h2 className="text-xl font-semibold text-gray-800 mb-4">给亲密关系中伴侣的建议</h2>
               <p className="text-gray-700 text-base leading-relaxed whitespace-pre-line">
                 {animalReport.advice}
@@ -274,9 +317,9 @@ export default function Result() {
             </div>
 
             {/* Score Details */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 relative z-10">
               {/* LoveStyle Scores */}
-              <div>
+              <div className="bg-white bg-opacity-80 rounded-lg p-6 backdrop-blur-sm">
                 <h3 className="text-lg font-semibold text-gray-800 mb-4">爱情风格得分</h3>
                 <div className="space-y-2">
                   {Object.entries(loveStyleScores).map(([style, score]: [string, any]) => (
@@ -287,7 +330,7 @@ export default function Result() {
                       <div className="flex items-center gap-2">
                         <div className="w-32 bg-gray-200 rounded-full h-2">
                           <div 
-                            className="bg-pink-500 h-2 rounded-full"
+                            className="bg-pink-500 h-2 rounded-full transition-all"
                             style={{ width: `${Math.min((score / 10) * 100, 100)}%` }}
                           ></div>
                         </div>
@@ -299,7 +342,7 @@ export default function Result() {
               </div>
 
               {/* Attachment Scores */}
-              <div>
+              <div className="bg-white bg-opacity-80 rounded-lg p-6 backdrop-blur-sm">
                 <h3 className="text-lg font-semibold text-gray-800 mb-4">依恋风格得分</h3>
                 <div className="space-y-2">
                   {Object.entries(attachmentScores).map(([attach, score]: [string, any]) => (
@@ -310,7 +353,7 @@ export default function Result() {
                       <div className="flex items-center gap-2">
                         <div className="w-32 bg-gray-200 rounded-full h-2">
                           <div 
-                            className="bg-purple-500 h-2 rounded-full"
+                            className="bg-purple-500 h-2 rounded-full transition-all"
                             style={{ width: `${Math.min((score / 10) * 100, 100)}%` }}
                           ></div>
                         </div>
@@ -324,7 +367,7 @@ export default function Result() {
 
             {/* Love Language Scores */}
             {Object.keys(loveLanguageScores).length > 0 && (
-              <div className="mb-8">
+              <div className="mb-8 bg-white bg-opacity-80 rounded-lg p-6 backdrop-blur-sm relative z-10">
                 <h3 className="text-lg font-semibold text-gray-800 mb-4">爱的语言得分</h3>
                 <div className="space-y-2">
                   {Object.entries(loveLanguageScores).map(([lang, score]: [string, any]) => (
@@ -335,7 +378,7 @@ export default function Result() {
                       <div className="flex items-center gap-2">
                         <div className="w-32 bg-gray-200 rounded-full h-2">
                           <div 
-                            className="bg-blue-500 h-2 rounded-full"
+                            className="bg-blue-500 h-2 rounded-full transition-all"
                             style={{ width: `${Math.min((score / 10) * 100, 100)}%` }}
                           ></div>
                         </div>
@@ -349,17 +392,25 @@ export default function Result() {
 
             {/* Sternberg & Gottman Types */}
             {(sternbergType || gottmanType) && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+              <div className="space-y-6 mb-8 relative z-10">
                 {sternbergType && (
-                  <div className="bg-blue-50 rounded-lg p-4">
-                    <h3 className="text-sm font-semibold text-gray-600 mb-2">Sternberg 类型</h3>
-                    <p className="text-lg font-bold text-gray-800">{sternbergType}</p>
+                  <div className="bg-white bg-opacity-80 rounded-lg p-6 backdrop-blur-sm border-l-4 border-green-500 pl-4">
+                    <h3 className="text-xl font-semibold text-gray-800 mb-2">
+                      Sternberg's Triangular Theory of Love（斯滕伯格爱情三角理论）
+                    </h3>
+                    <p className="text-gray-700 text-base leading-relaxed">
+                      根据你的回答，你的爱情类型是：<strong className="text-gray-900">{sternbergType}</strong>
+                    </p>
                   </div>
                 )}
                 {gottmanType && (
-                  <div className="bg-green-50 rounded-lg p-4">
-                    <h3 className="text-sm font-semibold text-gray-600 mb-2">Gottman 类型</h3>
-                    <p className="text-lg font-bold text-gray-800">{gottmanType}</p>
+                  <div className="bg-white bg-opacity-80 rounded-lg p-6 backdrop-blur-sm border-l-4 border-orange-500 pl-4">
+                    <h3 className="text-xl font-semibold text-gray-800 mb-2">
+                      Gottman Method（戈特曼方法）
+                    </h3>
+                    <p className="text-gray-700 text-base leading-relaxed">
+                      根据你的回答，你的关系沟通类型是：<strong className="text-gray-900">{gottmanType}</strong>
+                    </p>
                   </div>
                 )}
               </div>

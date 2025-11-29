@@ -2,3 +2,138 @@
 @tailwind components;
 @tailwind utilities;
 
+/* 全局背景渐变 - 从白色到浅粉色 */
+body {
+  background: linear-gradient(to bottom, #ffffff 0%, #ffeaf4 100%);
+  min-height: 100vh;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* 卡片纹理增强效果 */
+.animal-card-texture {
+  position: relative;
+  overflow: hidden;
+}
+
+.animal-card-texture::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  opacity: 0.03;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* 发光边框效果 - 增强颜色明显度，始终显示（减轻30%） */
+.card-glow-passion {
+  box-shadow: 0 0 30px rgba(244, 114, 182, 0.49), 0 0 60px rgba(244, 114, 182, 0.28), 0 0 90px rgba(244, 114, 182, 0.14) !important;
+}
+
+.card-glow-intimacy {
+  box-shadow: 0 0 30px rgba(96, 165, 250, 0.49), 0 0 60px rgba(96, 165, 250, 0.28), 0 0 90px rgba(96, 165, 250, 0.14) !important;
+}
+
+.card-glow-commitment {
+  box-shadow: 0 0 30px rgba(74, 222, 128, 0.49), 0 0 60px rgba(74, 222, 128, 0.28), 0 0 90px rgba(74, 222, 128, 0.14) !important;
+}
+
+/* 流动边框动画 - 通过改变background-position实现流动 */
+@keyframes borderFlow {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 300% 50%;
+  }
+}
+
+/* 选项按钮基础样式 */
+.quiz-option {
+  position: relative;
+  border: 2px solid #e5e7eb;
+  background-color: white;
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+/* 选中状态 - 流动渐变边框和背景 */
+.quiz-option.option-selected {
+  border: 2px solid transparent;
+  background-color: rgba(219, 234, 254, 0.2);
+}
+
+/* Hover状态 - 隐藏原生边框，准备显示流动边框 */
+.quiz-option:hover:not(.option-selected) {
+  border: 2px solid transparent;
+  background-color: rgba(219, 234, 254, 0.1);
+}
+
+/* 流动边框伪元素 - 悬停时显示流动效果 */
+.quiz-option:hover:not(.option-selected)::before,
+/* 流动边框伪元素 - 选中时也显示流动效果 */
+.quiz-option.option-selected::before {
+  content: '';
+  position: absolute;
+  inset: 0; /* 等同于 top: 0; left: 0; right: 0; bottom: 0; */
+  padding: 4px; /* 边框宽度 */
+  border-radius: inherit;
+  z-index: 0;
+  
+  /* ★★ 关键1：流动渐变背景，只用于边框 */
+  background: linear-gradient(
+    120deg,
+    rgba(255, 255, 255, 1),
+    rgba(182, 230, 255, 0.8),
+    rgba(55, 147, 255, 1),
+    rgba(182, 230, 255, 0.8),
+    rgba(255, 255, 255, 1)
+  );
+  background-size: 300% 300%; /* 关键：300%才能制造柔和流动，不会出现条状滑动 */
+  animation: borderFlow 3s linear infinite;
+  
+  /* ★★ 关键2：用mask挖出中间部分（非常重要！） */
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  
+  pointer-events: none;
+}
+
+/* 确保内容在边框之上 */
+.quiz-option > * {
+  position: relative;
+  z-index: 1;
+  background-color: white;
+}
+
+/* ========================================
+   动物卡片样式（恢复最初版本，增强边框颜色）
+   ======================================== */
+
+/* 动物卡片容器 */
+.animal-card {
+  position: relative;
+}
+
