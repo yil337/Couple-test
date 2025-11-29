@@ -229,37 +229,46 @@ export default function Result() {
               </div>
             </div>
 
+            {/* Animal Description */}
+            {animalReport.description && (
+              <div className="bg-blue-50 rounded-lg p-6 mb-8">
+                <p className="text-gray-800 text-lg leading-relaxed">
+                  {animalReport.description}
+                </p>
+              </div>
+            )}
+
             {/* Animal Report */}
             <div className="bg-gray-50 rounded-lg p-6 mb-8">
               <h2 className="text-xl font-semibold text-gray-800 mb-4">你的爱情风格</h2>
-              <p className="text-gray-700 text-lg leading-relaxed mb-4">
-                <strong>Lee's Love Style:</strong> {animalReport.loveStyle}
-              </p>
-              <p className="text-gray-700 text-lg leading-relaxed mb-4">
-                <strong>Adult Attachment Theory:</strong> {animalReport.attachment}
-              </p>
-              <p className="text-gray-700 text-lg leading-relaxed mb-4">
+              <div className="text-gray-700 text-base leading-relaxed mb-4 whitespace-pre-line">
+                {animalReport.loveStyle}
+              </div>
+              <div className="text-gray-700 text-base leading-relaxed mb-4 whitespace-pre-line">
+                {animalReport.attachment}
+              </div>
+              <div className="text-gray-700 text-base leading-relaxed mb-4">
                 <strong>Love Language:</strong> {animalReport.loveLanguage}
-              </p>
+              </div>
             </div>
 
             <div className="bg-gray-50 rounded-lg p-6 mb-8">
               <h2 className="text-xl font-semibold text-gray-800 mb-4">亲密关系中的表达倾向</h2>
-              <p className="text-gray-700 text-lg leading-relaxed">
+              <p className="text-gray-700 text-base leading-relaxed whitespace-pre-line">
                 {animalReport.expression}
               </p>
             </div>
 
             <div className="bg-gray-50 rounded-lg p-6 mb-8">
               <h2 className="text-xl font-semibold text-gray-800 mb-4">亲密关系中的需求与不安全感来源</h2>
-              <p className="text-gray-700 text-lg leading-relaxed">
+              <p className="text-gray-700 text-base leading-relaxed whitespace-pre-line">
                 {animalReport.needs}
               </p>
             </div>
 
             <div className="bg-gray-50 rounded-lg p-6 mb-8">
               <h2 className="text-xl font-semibold text-gray-800 mb-4">给亲密关系中伴侣的建议</h2>
-              <p className="text-gray-700 text-lg leading-relaxed">
+              <p className="text-gray-700 text-base leading-relaxed whitespace-pre-line">
                 {animalReport.advice}
               </p>
             </div>
