@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { getAnimalReport } from '../src/lib/animalReports'
 import { AnimalType } from '../src/lib/types'
 import { getAnimalCardStyle, getAnimalTypes } from '../src/lib/animalCardStyles'
+import { THEORY_INTRODUCTIONS } from '../src/lib/theoryIntroductions'
 
 // Dynamic import to prevent SSR execution
 const getSupabaseFunctions = () => {
@@ -19,7 +20,7 @@ const getSupabaseFunctions = () => {
 
 export default function Result() {
   const router = useRouter()
-  const { testId } = router.query
+  const { testId, pairId: pairIdParam, userType } = router.query
   const [result, setResult] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -27,6 +28,8 @@ export default function Result() {
   const [pairLink, setPairLink] = useState('')
   const [linkCopied, setLinkCopied] = useState(false)
   const [savingPair, setSavingPair] = useState(false)
+  const [showTheoryModal, setShowTheoryModal] = useState(false)
+  const [theoryModalContent, setTheoryModalContent] = useState<{ title: string; content: string } | null>(null)
 
   useEffect(() => {
     // STRICT: 确保只在客户端执行
@@ -44,6 +47,11 @@ export default function Result() {
 
     const fetchResult = async () => {
       try {
+        // 如果URL中有pairId参数（用户B的情况），直接使用它
+        if (pairIdParam && typeof pairIdParam === 'string') {
+          setPairId(pairIdParam)
+        }
+
         const { getTestResult } = getSupabaseFunctions()
         const resultData = await getTestResult(decodedTestId)
         if (resultData.success) {
@@ -186,8 +194,6 @@ export default function Result() {
   // 获取类型
   const primaryLoveStyle = personalProfile.primaryLoveStyle || 'PASSION'
   const primaryAttachment = personalProfile.primaryAttachment || 'SECURE'
-  const sternbergType = result?.sternbergType || ''
-  const gottmanType = result?.gottmanType || ''
 
   // 类型名称映射
   const loveStyleNames: Record<string, string> = {
@@ -253,21 +259,44 @@ export default function Result() {
               </div>
             </div>
 
-            {/* Animal Description */}
-            {animalReport.description && (
-              <div className="bg-white bg-opacity-80 rounded-lg p-6 mb-8 backdrop-blur-sm relative z-10">
-                <p className="text-gray-800 text-lg leading-relaxed">
-                  {animalReport.description}
+            {/* Animal Description - 合并了表达倾向和需求内容 */}
+            <div className="bg-white bg-opacity-80 rounded-lg p-6 mb-8 backdrop-blur-sm relative z-10">
+              <p className="text-gray-800 text-xl font-bold leading-relaxed mb-4">
+                {animalReport.description}
+              </p>
+              {animalReport.expression && (
+                <p className="text-gray-800 text-xl font-bold leading-relaxed mb-4">
+                  {animalReport.expression}
                 </p>
-              </div>
-            )}
+              )}
+              {animalReport.needs && (
+                <p className="text-gray-800 text-xl font-bold leading-relaxed">
+                  {animalReport.needs}
+                </p>
+              )}
+            </div>
 
             {/* Theory-Based Report Blocks */}
             <div className="space-y-6 mb-8 relative z-10">
               {/* Lee's Love Style */}
               <div className="bg-white bg-opacity-80 rounded-lg p-6 backdrop-blur-sm border-l-4 border-pink-500 pl-4">
-                <h3 className="text-xl font-semibold text-gray-800 mb-2">
+                <h3 className="text-xl font-semibold text-gray-800 mb-2 flex items-center gap-2">
                   Lee's Love Style（李的爱情风格理论）
+                  <button
+                    onClick={() => {
+                      setTheoryModalContent({
+                        title: THEORY_INTRODUCTIONS.leeLoveStyle.title,
+                        content: THEORY_INTRODUCTIONS.leeLoveStyle.content
+                      })
+                      setShowTheoryModal(true)
+                    }}
+                    className="text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
+                    title="查看完整介绍"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </button>
                 </h3>
                 <div className="text-gray-700 text-base leading-relaxed whitespace-pre-line">
                   {animalReport.loveStyle}
@@ -276,8 +305,23 @@ export default function Result() {
 
               {/* Adult Attachment Theory */}
               <div className="bg-white bg-opacity-80 rounded-lg p-6 backdrop-blur-sm border-l-4 border-purple-500 pl-4">
-                <h3 className="text-xl font-semibold text-gray-800 mb-2">
+                <h3 className="text-xl font-semibold text-gray-800 mb-2 flex items-center gap-2">
                   Adult Attachment Theory（成人依恋理论）
+                  <button
+                    onClick={() => {
+                      setTheoryModalContent({
+                        title: THEORY_INTRODUCTIONS.attachmentTheory.title,
+                        content: THEORY_INTRODUCTIONS.attachmentTheory.content
+                      })
+                      setShowTheoryModal(true)
+                    }}
+                    className="text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
+                    title="查看完整介绍"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </button>
                 </h3>
                 <div className="text-gray-700 text-base leading-relaxed whitespace-pre-line">
                   {animalReport.attachment}
@@ -286,27 +330,28 @@ export default function Result() {
 
               {/* Five Love Languages */}
               <div className="bg-white bg-opacity-80 rounded-lg p-6 backdrop-blur-sm border-l-4 border-blue-500 pl-4">
-                <h3 className="text-xl font-semibold text-gray-800 mb-2">
+                <h3 className="text-xl font-semibold text-gray-800 mb-2 flex items-center gap-2">
                   Five Love Languages（五种爱的语言）
+                  <button
+                    onClick={() => {
+                      setTheoryModalContent({
+                        title: THEORY_INTRODUCTIONS.loveLanguages.title,
+                        content: THEORY_INTRODUCTIONS.loveLanguages.content
+                      })
+                      setShowTheoryModal(true)
+                    }}
+                    className="text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
+                    title="查看完整介绍"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </button>
                 </h3>
                 <div className="text-gray-700 text-base leading-relaxed">
                   {animalReport.loveLanguage}
                 </div>
               </div>
-            </div>
-
-            <div className="bg-white bg-opacity-80 rounded-lg p-6 mb-8 backdrop-blur-sm relative z-10">
-              <h2 className="text-xl font-semibold text-gray-800 mb-4">亲密关系中的表达倾向</h2>
-              <p className="text-gray-700 text-base leading-relaxed whitespace-pre-line">
-                {animalReport.expression}
-              </p>
-            </div>
-
-            <div className="bg-white bg-opacity-80 rounded-lg p-6 mb-8 backdrop-blur-sm relative z-10">
-              <h2 className="text-xl font-semibold text-gray-800 mb-4">亲密关系中的需求与不安全感来源</h2>
-              <p className="text-gray-700 text-base leading-relaxed whitespace-pre-line">
-                {animalReport.needs}
-              </p>
             </div>
 
             <div className="bg-white bg-opacity-80 rounded-lg p-6 mb-8 backdrop-blur-sm relative z-10">
@@ -390,36 +435,29 @@ export default function Result() {
               </div>
             )}
 
-            {/* Sternberg & Gottman Types */}
-            {(sternbergType || gottmanType) && (
-              <div className="space-y-6 mb-8 relative z-10">
-                {sternbergType && (
-                  <div className="bg-white bg-opacity-80 rounded-lg p-6 backdrop-blur-sm border-l-4 border-green-500 pl-4">
-                    <h3 className="text-xl font-semibold text-gray-800 mb-2">
-                      Sternberg's Triangular Theory of Love（斯滕伯格爱情三角理论）
-                    </h3>
-                    <p className="text-gray-700 text-base leading-relaxed">
-                      根据你的回答，你的爱情类型是：<strong className="text-gray-900">{sternbergType}</strong>
-                    </p>
-                  </div>
-                )}
-                {gottmanType && (
-                  <div className="bg-white bg-opacity-80 rounded-lg p-6 backdrop-blur-sm border-l-4 border-orange-500 pl-4">
-                    <h3 className="text-xl font-semibold text-gray-800 mb-2">
-                      Gottman Method（戈特曼方法）
-                    </h3>
-                    <p className="text-gray-700 text-base leading-relaxed">
-                      根据你的回答，你的关系沟通类型是：<strong className="text-gray-900">{gottmanType}</strong>
-                    </p>
-                  </div>
-                )}
-              </div>
-            )}
           </div>
         )}
 
-        {/* Pair Invitation Section */}
-        {!pairId && !pairLink && (
+        {/* 用户B：显示查看合体爱情画像按钮 */}
+        {pairId && userType === 'B' && (
+          <div className="bg-white rounded-xl shadow-lg p-6 md:p-8 mb-8">
+            <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">
+              查看与伴侣的合体爱情画像
+            </h2>
+            <p className="text-gray-600 mb-6 text-center">
+              你已经完成了测试，现在可以查看你们两人的匹配结果和合体爱情画像
+            </p>
+            <button
+              onClick={() => router.push(`/match/${pairId}`)}
+              className="w-full px-6 py-3 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors font-medium"
+            >
+              查看合体爱情画像
+            </button>
+          </div>
+        )}
+
+        {/* 用户A：显示配对测试相关按钮 */}
+        {!pairId && !pairLink && userType !== 'B' && (
           <div className="bg-white rounded-xl shadow-lg p-6 md:p-8 mb-8">
             <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">
               想要配对测试？
@@ -472,6 +510,66 @@ export default function Result() {
           </Link>
         </div>
       </div>
+      
+      {/* 商务合作 */}
+      <div className="text-center mt-8 pb-4">
+        <p className="text-sm font-semibold text-gray-500 mb-2">
+          商务合作｜Business Collaboration
+        </p>
+        <p className="text-xs text-gray-500">
+          如需媒体报道、内容授权、模型合作、商业合作或其他形式的合作洽谈，请联系：
+        </p>
+        <a 
+          href="mailto:lyanalytics1@gmail.com" 
+          className="text-xs text-gray-500 hover:text-gray-600 underline"
+        >
+          lyanalytics1@gmail.com
+        </a>
+      </div>
+
+      {/* 版权信息 */}
+      <div className="text-center pb-4">
+        <p className="text-xs text-gray-500">
+          © 2025 LY Analytics｜本平台所有内容受版权保护
+        </p>
+      </div>
+
+      {/* 免责声明 */}
+      <div className="text-center pb-8">
+        <p className="text-xs text-gray-500">
+          本测评结果仅供参考，不构成专业心理诊断或行为建议。
+        </p>
+      </div>
+
+      {/* 理论介绍模态框 */}
+      {showTheoryModal && theoryModalContent && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+          onClick={() => setShowTheoryModal(false)}
+        >
+          <div 
+            className="bg-white rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-gray-800">{theoryModalContent.title}</h2>
+              <button
+                onClick={() => setShowTheoryModal(false)}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="px-6 py-6">
+              <div className="text-gray-700 text-base leading-relaxed whitespace-pre-line">
+                {theoryModalContent.content}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

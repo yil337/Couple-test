@@ -49,3 +49,4 @@ WHERE table_name = 'test_results'
 -- user_b | jsonb | jsonb
 
 
+

@@ -54,6 +54,115 @@ body {
   box-shadow: 0 0 30px rgba(74, 222, 128, 0.49), 0 0 60px rgba(74, 222, 128, 0.28), 0 0 90px rgba(74, 222, 128, 0.14) !important;
 }
 
+/* 匹配度卡片混合光晕效果 - 左边用户A，右边用户B */
+.match-card-glow-passion-passion {
+  box-shadow: 
+    /* 左边：用户A的粉色光晕 */
+    -30px 0 30px rgba(244, 114, 182, 0.49),
+    -60px 0 60px rgba(244, 114, 182, 0.28),
+    -90px 0 90px rgba(244, 114, 182, 0.14),
+    /* 右边：用户B的粉色光晕 */
+    30px 0 30px rgba(244, 114, 182, 0.49),
+    60px 0 60px rgba(244, 114, 182, 0.28),
+    90px 0 90px rgba(244, 114, 182, 0.14) !important;
+}
+
+.match-card-glow-passion-intimacy {
+  box-shadow: 
+    /* 左边：用户A的粉色光晕 */
+    -30px 0 30px rgba(244, 114, 182, 0.49),
+    -60px 0 60px rgba(244, 114, 182, 0.28),
+    -90px 0 90px rgba(244, 114, 182, 0.14),
+    /* 右边：用户B的蓝色光晕 */
+    30px 0 30px rgba(96, 165, 250, 0.49),
+    60px 0 60px rgba(96, 165, 250, 0.28),
+    90px 0 90px rgba(96, 165, 250, 0.14) !important;
+}
+
+.match-card-glow-passion-commitment {
+  box-shadow: 
+    /* 左边：用户A的粉色光晕 */
+    -30px 0 30px rgba(244, 114, 182, 0.49),
+    -60px 0 60px rgba(244, 114, 182, 0.28),
+    -90px 0 90px rgba(244, 114, 182, 0.14),
+    /* 右边：用户B的绿色光晕 */
+    30px 0 30px rgba(74, 222, 128, 0.49),
+    60px 0 60px rgba(74, 222, 128, 0.28),
+    90px 0 90px rgba(74, 222, 128, 0.14) !important;
+}
+
+.match-card-glow-intimacy-passion {
+  box-shadow: 
+    /* 左边：用户A的蓝色光晕 */
+    -30px 0 30px rgba(96, 165, 250, 0.49),
+    -60px 0 60px rgba(96, 165, 250, 0.28),
+    -90px 0 90px rgba(96, 165, 250, 0.14),
+    /* 右边：用户B的粉色光晕 */
+    30px 0 30px rgba(244, 114, 182, 0.49),
+    60px 0 60px rgba(244, 114, 182, 0.28),
+    90px 0 90px rgba(244, 114, 182, 0.14) !important;
+}
+
+.match-card-glow-intimacy-intimacy {
+  box-shadow: 
+    /* 左边：用户A的蓝色光晕 */
+    -30px 0 30px rgba(96, 165, 250, 0.49),
+    -60px 0 60px rgba(96, 165, 250, 0.28),
+    -90px 0 90px rgba(96, 165, 250, 0.14),
+    /* 右边：用户B的蓝色光晕 */
+    30px 0 30px rgba(96, 165, 250, 0.49),
+    60px 0 60px rgba(96, 165, 250, 0.28),
+    90px 0 90px rgba(96, 165, 250, 0.14) !important;
+}
+
+.match-card-glow-intimacy-commitment {
+  box-shadow: 
+    /* 左边：用户A的蓝色光晕 */
+    -30px 0 30px rgba(96, 165, 250, 0.49),
+    -60px 0 60px rgba(96, 165, 250, 0.28),
+    -90px 0 90px rgba(96, 165, 250, 0.14),
+    /* 右边：用户B的绿色光晕 */
+    30px 0 30px rgba(74, 222, 128, 0.49),
+    60px 0 60px rgba(74, 222, 128, 0.28),
+    90px 0 90px rgba(74, 222, 128, 0.14) !important;
+}
+
+.match-card-glow-commitment-passion {
+  box-shadow: 
+    /* 左边：用户A的绿色光晕 */
+    -30px 0 30px rgba(74, 222, 128, 0.49),
+    -60px 0 60px rgba(74, 222, 128, 0.28),
+    -90px 0 90px rgba(74, 222, 128, 0.14),
+    /* 右边：用户B的粉色光晕 */
+    30px 0 30px rgba(244, 114, 182, 0.49),
+    60px 0 60px rgba(244, 114, 182, 0.28),
+    90px 0 90px rgba(244, 114, 182, 0.14) !important;
+}
+
+.match-card-glow-commitment-intimacy {
+  box-shadow: 
+    /* 左边：用户A的绿色光晕 */
+    -30px 0 30px rgba(74, 222, 128, 0.49),
+    -60px 0 60px rgba(74, 222, 128, 0.28),
+    -90px 0 90px rgba(74, 222, 128, 0.14),
+    /* 右边：用户B的蓝色光晕 */
+    30px 0 30px rgba(96, 165, 250, 0.49),
+    60px 0 60px rgba(96, 165, 250, 0.28),
+    90px 0 90px rgba(96, 165, 250, 0.14) !important;
+}
+
+.match-card-glow-commitment-commitment {
+  box-shadow: 
+    /* 左边：用户A的绿色光晕 */
+    -30px 0 30px rgba(74, 222, 128, 0.49),
+    -60px 0 60px rgba(74, 222, 128, 0.28),
+    -90px 0 90px rgba(74, 222, 128, 0.14),
+    /* 右边：用户B的绿色光晕 */
+    30px 0 30px rgba(74, 222, 128, 0.49),
+    60px 0 60px rgba(74, 222, 128, 0.28),
+    90px 0 90px rgba(74, 222, 128, 0.14) !important;
+}
+
 /* 流动边框动画 - 通过改变background-position实现流动 */
 @keyframes borderFlow {
   0% {

@@ -69,3 +69,4 @@ export function classifyGottman(v: Record<GottmanCategory, number>): GottmanType
   return scores[0].cat as GottmanType
 }
 
+

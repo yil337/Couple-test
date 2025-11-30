@@ -132,6 +132,36 @@ export default function Home() {
           </div>
         </div>
       </div>
+      
+      {/* 商务合作 */}
+      <div className="text-center mt-12 pb-4">
+        <p className="text-sm font-semibold text-gray-500 mb-2">
+          商务合作｜Business Collaboration
+        </p>
+        <p className="text-xs text-gray-500">
+          如需媒体报道、内容授权、模型合作、商业合作或其他形式的合作洽谈，请联系：
+        </p>
+        <a 
+          href="mailto:lyanalytics1@gmail.com" 
+          className="text-xs text-gray-500 hover:text-gray-600 underline"
+        >
+          lyanalytics1@gmail.com
+        </a>
+      </div>
+
+      {/* 版权信息 */}
+      <div className="text-center pb-4">
+        <p className="text-xs text-gray-500">
+          © 2025 LY Analytics｜本平台所有内容受版权保护
+        </p>
+      </div>
+
+      {/* 免责声明 */}
+      <div className="text-center pb-8">
+        <p className="text-xs text-gray-500">
+          本测评结果仅供参考，不构成专业心理诊断或行为建议。
+        </p>
+      </div>
     </div>
   )
 }

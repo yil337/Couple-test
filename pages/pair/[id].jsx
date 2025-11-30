@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
-import TestComponent from '../../components/TestComponent'
 
 // 动态导入 Supabase 函数，确保只在客户端执行
 const getSupabaseFunctions = () => {
@@ -20,7 +19,6 @@ export default function Pair() {
   const [error, setError] = useState(null)
   const [userA, setUserA] = useState(null)
   const [userB, setUserB] = useState(null)
-  const [showTest, setShowTest] = useState(false)
 
   useEffect(() => {
     // STRICT: 确保只在客户端执行
@@ -61,7 +59,8 @@ export default function Pair() {
   }, [id, router.isReady])
 
   const handleStartTest = () => {
-    setShowTest(true)
+    // 重定向到测试页面，传递 pairId 和 userType
+    router.push(`/test?pairId=${id}&userType=B`)
   }
 
   if (loading) {
@@ -93,9 +92,6 @@ export default function Pair() {
     )
   }
 
-  if (showTest) {
-    return <TestComponent pairId={id} userType="B" />
-  }
 
   return (
     <div className="min-h-screen py-12 px-4">
@@ -131,6 +127,36 @@ export default function Pair() {
             返回首页
           </Link>
         </div>
+      </div>
+      
+      {/* 商务合作 */}
+      <div className="text-center mt-8 pb-4">
+        <p className="text-sm font-semibold text-gray-500 mb-2">
+          商务合作｜Business Collaboration
+        </p>
+        <p className="text-xs text-gray-500">
+          如需媒体报道、内容授权、模型合作、商业合作或其他形式的合作洽谈，请联系：
+        </p>
+        <a 
+          href="mailto:lyanalytics1@gmail.com" 
+          className="text-xs text-gray-500 hover:text-gray-600 underline"
+        >
+          lyanalytics1@gmail.com
+        </a>
+      </div>
+
+      {/* 版权信息 */}
+      <div className="text-center pb-4">
+        <p className="text-xs text-gray-500">
+          © 2025 LY Analytics｜本平台所有内容受版权保护
+        </p>
+      </div>
+
+      {/* 免责声明 */}
+      <div className="text-center pb-8">
+        <p className="text-xs text-gray-500">
+          本测评结果仅供参考，不构成专业心理诊断或行为建议。
+        </p>
       </div>
     </div>
   )

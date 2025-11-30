@@ -45,3 +45,4 @@ WHERE table_name = 'test_results'
 --   ALTER COLUMN user_a TYPE JSONB USING NULL;
 
 
+

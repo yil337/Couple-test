@@ -61,3 +61,4 @@ WHERE table_name = 'test_results'
 -- - scores_json: 详细得分（JSONB格式，包含所有得分向量）
 -- ============================================
 
+

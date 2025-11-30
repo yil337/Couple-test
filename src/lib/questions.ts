@@ -871,7 +871,7 @@ export const QUESTIONS: Question[] = [
   // Q23
   {
     id: 'Q23',
-    text: '夜里坐在帐篷外，他突然说"我们聊聊吧"，你会：',
+    text: '夜里坐在帐篷外，ta突然说"我们聊聊吧"，你会：',
     options: [
       {
         key: 'A',
