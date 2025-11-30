@@ -278,7 +278,7 @@ export default function Test() {
               ← 返回首页
             </Link>
             <h1 className="text-3xl font-bold text-gray-800 mb-2">
-              爱情模型测试
+              爱情动物人格测试
             </h1>
             <div className="text-sm text-gray-600 mb-4">
               问题 24 / {totalQuestions}

@@ -1,34 +1,39 @@
 import Link from 'next/link'
+import Head from 'next/head'
 import { useState } from 'react'
 
 export default function Home() {
   const [showTheories, setShowTheories] = useState(false)
 
   return (
-    <div className="min-h-screen py-12 px-4">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-5xl md:text-6xl font-bold text-gray-800 mb-6">
-            爱情契合度与人格测试
-          </h1>
-          <p className="text-xl md:text-2xl text-gray-600 mb-4">
-            通过26道专业题目，深度解析你的爱情风格
-          </p>
-          <p className="text-lg text-gray-500 mb-8">
-            基于6大心理学理论模型，科学评估你的爱情画像与匹配度
-          </p>
-          <div className="flex gap-4 justify-center">
+    <>
+      <Head>
+        <title>爱情动物画像</title>
+      </Head>
+      <div className="min-h-screen py-12 px-4">
+        <div className="max-w-4xl mx-auto">
+          {/* Header */}
+          <div className="text-center mb-12">
+            <h1 className="text-5xl md:text-6xl font-bold text-gray-800 mb-6">
+              爱情动物人格测试
+            </h1>
+            <p className="text-xl md:text-2xl text-gray-600 mb-4">
+              基于6大心理学理论模型，科学评估你的爱情动物画像与伴侣匹配度
+            </p>
+            <p className="text-lg text-gray-500 mb-8">
+              通过26道专业题目，深度解析你的爱情风格
+            </p>
+            <div className="flex gap-4 justify-center">
             <Link 
               href="/test" 
               className="px-8 py-4 bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded-lg hover:from-pink-600 hover:to-purple-600 transition-all transform hover:scale-105 shadow-lg text-lg font-medium"
             >
               开始测试
             </Link>
+            </div>
           </div>
-        </div>
 
-        {/* Theory Models Section */}
+          {/* Theory Models Section */}
         <div className="bg-white rounded-xl shadow-lg p-6 md:p-8 mb-8">
           <button
             onClick={() => setShowTheories(!showTheories)}
@@ -111,58 +116,59 @@ export default function Home() {
               </div>
             </div>
           )}
+          </div>
+
+          {/* Features */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div className="bg-white rounded-lg shadow-md p-6 text-center">
+              <div className="text-4xl mb-4">🎯</div>
+              <h3 className="text-lg font-semibold text-gray-800 mb-2">科学评估</h3>
+              <p className="text-gray-600 text-sm">基于六大心理学理论模型</p>
+            </div>
+            <div className="bg-white rounded-lg shadow-md p-6 text-center">
+              <div className="text-4xl mb-4">💑</div>
+              <h3 className="text-lg font-semibold text-gray-800 mb-2">匹配分析</h3>
+              <p className="text-gray-600 text-sm">支持双人测试，基于多维度心理学模型科学计算伴侣匹配度</p>
+            </div>
+            <div className="bg-white rounded-lg shadow-md p-6 text-center">
+              <div className="text-4xl mb-4">🐾</div>
+              <h3 className="text-lg font-semibold text-gray-800 mb-2">动物人格</h3>
+              <p className="text-gray-600 text-sm">24种动物类型，基于心理学模型科学分类</p>
+            </div>
+          </div>
+          
+          {/* 商务合作 */}
+          <div className="text-center mt-12 pb-4">
+          <p className="text-sm font-semibold text-gray-500 mb-2">
+            商务合作｜Business Collaboration
+          </p>
+          <p className="text-xs text-gray-500">
+            如需媒体报道、内容授权、模型合作、商业合作或其他形式的合作洽谈，请联系：
+          </p>
+          <a 
+            href="mailto:lyanalytics1@gmail.com" 
+            className="text-xs text-gray-500 hover:text-gray-600 underline"
+          >
+            lyanalytics1@gmail.com
+          </a>
+          </div>
+
+          {/* 版权信息 */}
+          <div className="text-center pb-4">
+            <p className="text-xs text-gray-500">
+              © 2025 LY Analytics｜本平台所有内容受版权保护
+            </p>
+          </div>
+
+          {/* 免责声明 */}
+          <div className="text-center pb-8">
+            <p className="text-xs text-gray-500">
+              本测评结果仅供参考，不构成专业心理诊断或行为建议。
+            </p>
+          </div>
         </div>
-
-        {/* Features */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow-md p-6 text-center">
-            <div className="text-4xl mb-4">🎯</div>
-            <h3 className="text-lg font-semibold text-gray-800 mb-2">科学评估</h3>
-            <p className="text-gray-600 text-sm">基于六大心理学理论模型</p>
-          </div>
-          <div className="bg-white rounded-lg shadow-md p-6 text-center">
-            <div className="text-4xl mb-4">🐾</div>
-            <h3 className="text-lg font-semibold text-gray-800 mb-2">动物人格</h3>
-            <p className="text-gray-600 text-sm">24种动物类型，生动形象</p>
-          </div>
-          <div className="bg-white rounded-lg shadow-md p-6 text-center">
-            <div className="text-4xl mb-4">💑</div>
-            <h3 className="text-lg font-semibold text-gray-800 mb-2">匹配分析</h3>
-            <p className="text-gray-600 text-sm">多维度计算情侣匹配度</p>
-          </div>
-        </div>
       </div>
-      
-      {/* 商务合作 */}
-      <div className="text-center mt-12 pb-4">
-        <p className="text-sm font-semibold text-gray-500 mb-2">
-          商务合作｜Business Collaboration
-        </p>
-        <p className="text-xs text-gray-500">
-          如需媒体报道、内容授权、模型合作、商业合作或其他形式的合作洽谈，请联系：
-        </p>
-        <a 
-          href="mailto:lyanalytics1@gmail.com" 
-          className="text-xs text-gray-500 hover:text-gray-600 underline"
-        >
-          lyanalytics1@gmail.com
-        </a>
-      </div>
-
-      {/* 版权信息 */}
-      <div className="text-center pb-4">
-        <p className="text-xs text-gray-500">
-          © 2025 LY Analytics｜本平台所有内容受版权保护
-        </p>
-      </div>
-
-      {/* 免责声明 */}
-      <div className="text-center pb-8">
-        <p className="text-xs text-gray-500">
-          本测评结果仅供参考，不构成专业心理诊断或行为建议。
-        </p>
-      </div>
-    </div>
+    </>
   )
 }
 
