@@ -278,9 +278,15 @@ export default function Match() {
               <div className="text-2xl mb-4 flex items-center gap-2">
                 {sternbergReport.emoji} {sternbergReport.name}
               </div>
-              <p className="text-gray-700 text-lg font-semibold leading-relaxed">
-                {sternbergReport.tone} {sternbergReport.advantages} {sternbergReport.risks} {sternbergReport.suggestions}
+              <p className="text-gray-700 text-lg font-semibold leading-relaxed mb-4">
+                {sternbergReport.tone} {sternbergReport.advantages} {sternbergReport.risks}
               </p>
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <p className="text-gray-800 text-lg font-bold mb-2">建议：</p>
+                <p className="text-gray-700 text-lg font-semibold leading-relaxed">
+                  {sternbergReport.suggestions}
+                </p>
+              </div>
             </div>
           </div>
 
@@ -308,9 +314,15 @@ export default function Match() {
               <div className="text-2xl mb-4 flex items-center gap-2">
                 {gottmanReport.emoji} {gottmanReport.name}
               </div>
-              <p className="text-gray-700 text-lg font-semibold leading-relaxed">
-                {gottmanReport.tone} {gottmanReport.advantages} {gottmanReport.risks} {gottmanReport.suggestions}
+              <p className="text-gray-700 text-lg font-semibold leading-relaxed mb-4">
+                {gottmanReport.tone} {gottmanReport.advantages} {gottmanReport.risks}
               </p>
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <p className="text-gray-800 text-lg font-bold mb-2">建议：</p>
+                <p className="text-gray-700 text-lg font-semibold leading-relaxed">
+                  {gottmanReport.suggestions}
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -389,7 +401,7 @@ export default function Match() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           {/* User A */}
           <div className="bg-white rounded-xl shadow-lg p-6">
-            <h3 className="text-xl font-bold text-gray-800 mb-4">用户A</h3>
+            <h3 className="text-xl font-bold text-gray-800 mb-4">{userA?.nickname || '用户A'}</h3>
             <div className="bg-gradient-to-r from-pink-500 to-purple-500 text-white text-2xl font-bold px-4 py-2 rounded-lg mb-4 text-center">
               {userA.personalProfile?.animal || userA.resultName || '未知'}
             </div>
@@ -401,7 +413,7 @@ export default function Match() {
 
           {/* User B */}
           <div className="bg-white rounded-xl shadow-lg p-6">
-            <h3 className="text-xl font-bold text-gray-800 mb-4">用户B</h3>
+            <h3 className="text-xl font-bold text-gray-800 mb-4">{userB?.nickname || '用户B'}</h3>
             <div className="bg-gradient-to-r from-pink-500 to-purple-500 text-white text-2xl font-bold px-4 py-2 rounded-lg mb-4 text-center">
               {userB.personalProfile?.animal || userB.resultName || '未知'}
             </div>
@@ -427,65 +439,53 @@ export default function Match() {
           </button>
 
           {showAnswers && (
-            <div className="mt-6 space-y-6 animate-fadeIn">
-              {/* User A Answers */}
-              <div>
-                <h3 className="text-xl font-semibold text-gray-800 mb-4 border-b-2 border-pink-200 pb-2">
-                  用户A的答题结果
-                </h3>
-                <div className="space-y-4">
-                  {QUESTIONS.slice(0, 23).map((question, index) => {
-                    const answer = userA?.answers?.find((a: any) => a.questionId === question.id)
-                    const selectedOption = answer?.selectedOption
-                    const option = question.options.find(opt => opt.key === selectedOption)
-                    
-                    return (
-                      <div key={question.id} className="bg-gray-50 rounded-lg p-4">
-                        <div className="text-sm font-semibold text-gray-700 mb-2">
-                          问题 {index + 1}: {question.text}
+            <div className="mt-6 animate-fadeIn">
+              {/* 并排显示答题结果 */}
+              <div className="space-y-4">
+                {QUESTIONS.slice(0, 23).map((question, index) => {
+                  const answerA = userA?.answers?.find((a: any) => a.questionId === question.id)
+                  const answerB = userB?.answers?.find((a: any) => a.questionId === question.id)
+                  const selectedOptionA = answerA?.selectedOption
+                  const selectedOptionB = answerB?.selectedOption
+                  const optionA = question.options.find(opt => opt.key === selectedOptionA)
+                  const optionB = question.options.find(opt => opt.key === selectedOptionB)
+                  
+                  return (
+                    <div key={question.id} className="bg-gray-50 rounded-lg p-4">
+                      <div className="text-sm font-semibold text-gray-700 mb-3">
+                        问题 {index + 1}: {question.text}
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {/* User A Answer */}
+                        <div className="bg-white rounded-lg p-3 border-l-4 border-pink-500">
+                          <div className="text-xs font-semibold text-pink-600 mb-1">
+                            {userA?.nickname || '用户A'}
+                          </div>
+                          <div className="text-sm text-gray-700">
+                            {optionA ? (
+                              <span className="text-pink-600 font-medium">{optionA.key}. {optionA.text}</span>
+                            ) : (
+                              <span className="text-gray-400">未作答</span>
+                            )}
+                          </div>
                         </div>
-                        <div className="text-sm text-gray-600">
-                          <span className="font-medium">选择: </span>
-                          {option ? (
-                            <span className="text-pink-600">{option.key}. {option.text}</span>
-                          ) : (
-                            <span className="text-gray-400">未作答</span>
-                          )}
+                        {/* User B Answer */}
+                        <div className="bg-white rounded-lg p-3 border-l-4 border-purple-500">
+                          <div className="text-xs font-semibold text-purple-600 mb-1">
+                            {userB?.nickname || '用户B'}
+                          </div>
+                          <div className="text-sm text-gray-700">
+                            {optionB ? (
+                              <span className="text-purple-600 font-medium">{optionB.key}. {optionB.text}</span>
+                            ) : (
+                              <span className="text-gray-400">未作答</span>
+                            )}
+                          </div>
                         </div>
                       </div>
-                    )
-                  })}
-                </div>
-              </div>
-
-              {/* User B Answers */}
-              <div>
-                <h3 className="text-xl font-semibold text-gray-800 mb-4 border-b-2 border-purple-200 pb-2">
-                  用户B的答题结果
-                </h3>
-                <div className="space-y-4">
-                  {QUESTIONS.slice(0, 23).map((question, index) => {
-                    const answer = userB?.answers?.find((a: any) => a.questionId === question.id)
-                    const selectedOption = answer?.selectedOption
-                    const option = question.options.find(opt => opt.key === selectedOption)
-                    
-                    return (
-                      <div key={question.id} className="bg-gray-50 rounded-lg p-4">
-                        <div className="text-sm font-semibold text-gray-700 mb-2">
-                          问题 {index + 1}: {question.text}
-                        </div>
-                        <div className="text-sm text-gray-600">
-                          <span className="font-medium">选择: </span>
-                          {option ? (
-                            <span className="text-purple-600">{option.key}. {option.text}</span>
-                          ) : (
-                            <span className="text-gray-400">未作答</span>
-                          )}
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
+                    </div>
+                  )
+                })}
               </div>
             </div>
           )}

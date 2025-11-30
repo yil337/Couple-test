@@ -11,6 +11,7 @@ const getSupabaseFunctions = () => {
   if (typeof window === 'undefined') {
     return {
       getTestResult: async () => ({ success: false, error: 'Client only' }),
+      getPairData: async () => ({ success: false, error: 'Client only' }),
       generatePairId: async () => ({ success: false, error: 'Client only' }),
       saveUserA: async () => ({ success: false, error: 'Client only' }),
     }
@@ -52,19 +53,37 @@ export default function Result() {
           setPairId(pairIdParam)
         }
 
-        const { getTestResult } = getSupabaseFunctions()
-        const resultData = await getTestResult(decodedTestId)
-        if (resultData.success) {
-          console.log('[Result] Fetched data:', resultData.data)
-          // 确保数据是对象格式（Supabase JSONB 可能返回字符串）
-          const data = typeof resultData.data === 'string' 
-            ? JSON.parse(resultData.data) 
-            : resultData.data
-          console.log('[Result] Parsed data:', data)
-          setResult(data)
+        // 如果是User B，使用getPairData获取user_b的数据
+        if (userType === 'B' && pairIdParam && typeof pairIdParam === 'string') {
+          const { getPairData } = getSupabaseFunctions()
+          const pairData = await getPairData(pairIdParam)
+          if (pairData.success && pairData.data?.userB) {
+            console.log('[Result] Fetched UserB data:', pairData.data.userB)
+            const data = typeof pairData.data.userB === 'string' 
+              ? JSON.parse(pairData.data.userB) 
+              : pairData.data.userB
+            console.log('[Result] Parsed UserB data:', data)
+            setResult(data)
+          } else {
+            console.error('[Result] Failed to fetch UserB:', pairData.error)
+            setError('无法加载测试结果: ' + (pairData.error || ''))
+          }
         } else {
-          console.error('[Result] Failed to fetch:', resultData.error)
-          setError('无法加载测试结果: ' + (resultData.error || ''))
+          // User A的情况，使用getTestResult
+          const { getTestResult } = getSupabaseFunctions()
+          const resultData = await getTestResult(decodedTestId)
+          if (resultData.success) {
+            console.log('[Result] Fetched data:', resultData.data)
+            // 确保数据是对象格式（Supabase JSONB 可能返回字符串）
+            const data = typeof resultData.data === 'string' 
+              ? JSON.parse(resultData.data) 
+              : resultData.data
+            console.log('[Result] Parsed data:', data)
+            setResult(data)
+          } else {
+            console.error('[Result] Failed to fetch:', resultData.error)
+            setError('无法加载测试结果: ' + (resultData.error || ''))
+          }
         }
       } catch (err: any) {
         console.error('Fetch result error:', err)
@@ -75,7 +94,7 @@ export default function Result() {
     }
 
     fetchResult()
-  }, [testId, router.isReady])
+  }, [testId, pairIdParam, userType, router.isReady])
 
   const handleGeneratePair = async () => {
     // STRICT: 确保只在客户端执行

@@ -9,6 +9,7 @@ import {
   MatchResult,
   SternbergType,
   GottmanType,
+  GottmanCategory,
   AnimalType
 } from '../types'
 import { classifySternberg, classifyGottman } from './relationshipTypes'
@@ -215,21 +216,43 @@ export function computeMatchScore(
   userA: FullProfile,
   userB: FullProfile
 ): MatchResult {
-  // 1. 分类 Sternberg 和 Gottman 类型
+  // 1. 合并两个人的 Sternberg 向量（取平均值）
+  const combinedSternbergVector = {
+    intimacy: (userA.sternbergVector.intimacy + userB.sternbergVector.intimacy) / 2,
+    passion: (userA.sternbergVector.passion + userB.sternbergVector.passion) / 2,
+    commitment: (userA.sternbergVector.commitment + userB.sternbergVector.commitment) / 2
+  }
+  
+  // 2. 合并两个人的 Gottman 向量（取平均值）
+  const combinedGottmanVector: Record<GottmanCategory, number> = {
+    HEALTHY: (userA.gottmanVector.HEALTHY + userB.gottmanVector.HEALTHY) / 2,
+    CRITICISM: (userA.gottmanVector.CRITICISM + userB.gottmanVector.CRITICISM) / 2,
+    DEFENSIVENESS: (userA.gottmanVector.DEFENSIVENESS + userB.gottmanVector.DEFENSIVENESS) / 2,
+    STONEWALLING: (userA.gottmanVector.STONEWALLING + userB.gottmanVector.STONEWALLING) / 2,
+    CONTEMPT: (userA.gottmanVector.CONTEMPT + userB.gottmanVector.CONTEMPT) / 2
+  }
+  
+  // 3. 基于合并后的向量分类（共同类型）
+  const combinedSternbergType = classifySternberg(combinedSternbergVector)
+  const combinedGottmanType = classifyGottman(combinedGottmanVector)
+  
+  // 4. 基于合并后的共同类型计算匹配度
+  // 因为已经合并计算，两人共同属于这个类型，所以匹配度为95%（Sternberg）
+  const sternbergRaw = 0.95
+  const W_STERNBERG = 30
+  const sternbergContribution = sternbergRaw * W_STERNBERG
+  
+  // 5. 计算 Gottman 匹配度
+  // 如果共同类型为NONE（健康）则为100%，否则为80%
+  const gottmanRaw = combinedGottmanType === 'NONE' ? 1.00 : 0.80
+  const W_GOTTMAN = 30
+  const gottmanContribution = gottmanRaw * W_GOTTMAN
+  
+  // 保留单独的类型用于显示（用于显示"喜欢 × 喜欢"这样的格式）
   const sternbergTypeA = classifySternberg(userA.sternbergVector)
   const sternbergTypeB = classifySternberg(userB.sternbergVector)
   const gottmanTypeA = classifyGottman(userA.gottmanVector)
   const gottmanTypeB = classifyGottman(userB.gottmanVector)
-  
-  // 2. 计算 Sternberg 匹配度
-  const sternbergRaw = STERNBERG_MATCH_MATRIX[sternbergTypeA][sternbergTypeB]
-  const W_STERNBERG = 30
-  const sternbergContribution = sternbergRaw * W_STERNBERG
-  
-  // 3. 计算 Gottman 匹配度
-  const gottmanRaw = GOTTMAN_MATCH_MATRIX[gottmanTypeA][gottmanTypeB]
-  const W_GOTTMAN = 30
-  const gottmanContribution = gottmanRaw * W_GOTTMAN
   
   // 4. 计算 Social Exchange 匹配度
   const socialRaw = computeSocialExchangeScore(userA.socialExchange, userB.socialExchange)
@@ -290,10 +313,11 @@ export function computeMatchScore(
     animalB: userB.animal,
     cpName,
     nickname,
-    sternbergTypeA,
-    sternbergTypeB,
-    gottmanTypeA,
-    gottmanTypeB
+    // 显示时使用合并后的共同类型
+    sternbergTypeA: combinedSternbergType,
+    sternbergTypeB: combinedSternbergType,
+    gottmanTypeA: combinedGottmanType,
+    gottmanTypeB: combinedGottmanType
   }
 }
 

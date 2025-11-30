@@ -29,6 +29,8 @@ export default function Test() {
   const [error, setError] = useState<string | null>(null)
   const [inRelationship, setInRelationship] = useState<boolean | null>(null) // null: 未选择, true: 是, false: 否
   const [showRelationshipQuestion, setShowRelationshipQuestion] = useState(false) // 是否显示关系状态询问页
+  const [nickname, setNickname] = useState<string>('') // 用户昵称
+  const [showNicknameInput, setShowNicknameInput] = useState<boolean>(true) // 是否显示昵称输入
 
   const handleAnswer = (optionKey: string) => {
     if (showRelationshipQuestion) {
@@ -139,6 +141,9 @@ export default function Test() {
 
       // 准备用户数据
       const userData = {
+        // 昵称
+        nickname: nickname || (userType === 'B' ? '用户B' : '用户A'),
+        
         // 原始答案
         answers: QUESTIONS.map(q => ({
           questionId: q.id,

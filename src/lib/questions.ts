@@ -842,7 +842,7 @@ export const QUESTIONS: Question[] = [
     options: [
       {
         key: 'A',
-        text: '会想这是否是真的，理解ta很累很辛苦',
+        text: '回想这是否是真的，理解ta很累很辛苦',
         mapping: createMapping({ ls: '友谊', at: '安全', gm: '健康' })
       },
       {
