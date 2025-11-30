@@ -177,7 +177,7 @@ export default function Test() {
         const saveResult = await saveUserB(pairId as string, userData)
         if (saveResult.success) {
           // 用户B先跳转到单人结果页面，传递pairId和userType参数
-          router.push(`/result?testId=${encodeURIComponent(testId)}&pairId=${encodeURIComponent(pairId as string)}&userType=B`)
+          router.push(`/result?testId=${encodeURIComponent(pairId as string)}&pairId=${encodeURIComponent(pairId as string)}&userType=B`)
         } else {
           // 显示详细错误信息
           let errorMsg = '保存结果失败'
