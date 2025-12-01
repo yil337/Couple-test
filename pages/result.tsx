@@ -507,7 +507,7 @@ export default function Result() {
               配对链接已生成
             </h2>
             <p className="text-gray-600 mb-4 text-center text-sm">
-              将以下链接发送给你的伴侣，让他们完成测试
+              将以下链接发送给你的伴侣，让ta完成测试
             </p>
             <div className="bg-gray-50 rounded-lg p-4 mb-4 border-2 border-dashed border-gray-300">
               <p className="text-sm text-gray-700 break-all">{pairLink}</p>

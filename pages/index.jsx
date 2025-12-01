@@ -127,8 +127,8 @@ export default function Home() {
             </div>
             <div className="bg-white rounded-lg shadow-md p-6 text-center">
               <div className="text-4xl mb-4">💑</div>
-              <h3 className="text-lg font-semibold text-gray-800 mb-2">匹配分析</h3>
-              <p className="text-gray-600 text-sm">支持双人测试，基于多维度心理学模型科学计算伴侣匹配度</p>
+              <h3 className="text-lg font-semibold text-gray-800 mb-2">双人测试</h3>
+              <p className="text-gray-600 text-sm">支持双人测试，计算共同结果获得爱情匹配度</p>
             </div>
             <div className="bg-white rounded-lg shadow-md p-6 text-center">
               <div className="text-4xl mb-4">🐾</div>
