@@ -265,16 +265,18 @@ export default function Result() {
         {/* Animal Result Card */}
         {result && (
           <div className={`animal-card ${cardStyle.texture} ${cardStyle.border.glow} p-8 md:p-12 mb-8 transition-all relative`}>
-            <div className="text-center mb-8">
-              <div className={`inline-block bg-white text-gray-900 text-5xl font-bold px-8 py-4 rounded-2xl mb-6 transform hover:scale-105 transition-transform ${cardStyle.border.glow}`}>
+            <div className="text-center mb-8 pt-6">
+              <div className={`inline-block bg-white text-gray-900 text-5xl font-bold px-8 py-4 rounded-2xl mb-4 transform hover:scale-105 transition-transform ${cardStyle.border.glow}`}>
                 <span className={`${cardStyle.emoji.size} ${cardStyle.emoji.position} ${cardStyle.emoji.transform} ${cardStyle.emoji.shadow} inline-block`}>
                   {animalReport.emoji}
                 </span>
                 <span>{animal}</span>
               </div>
-              <div className={`${cardStyle.tag.class} inline-block px-4 py-2 text-gray-800 text-sm font-medium mb-4`}>
-                <span className="mr-1">{cardStyle.theme.icon}</span>
-                {loveStyleNames[primaryLoveStyle] || primaryLoveStyle} × {attachmentNames[primaryAttachment] || primaryAttachment}
+              <div className="block w-full mt-4">
+                <div className={`${cardStyle.tag.class} inline-block px-4 py-2 text-gray-800 text-base font-medium mb-6`}>
+                  <span className="mr-1">{cardStyle.theme.icon}</span>
+                  {loveStyleNames[primaryLoveStyle] || primaryLoveStyle} × {attachmentNames[primaryAttachment] || primaryAttachment}
+                </div>
               </div>
             </div>
 

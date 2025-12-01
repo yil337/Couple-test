@@ -267,6 +267,86 @@ export default function Test() {
   }
   const progress = inRelationship === false ? 100 : ((currentQuestionIndex + 1) / totalQuestions) * 100
   
+  // 如果显示昵称输入页
+  if (showNicknameInput) {
+    return (
+      <div className="min-h-screen py-8 px-4">
+        <div className="max-w-3xl mx-auto">
+          {/* Header */}
+          <div className="mb-8">
+            <Link 
+              href="/" 
+              className="text-gray-600 hover:text-gray-800 transition-colors mb-4 inline-block"
+            >
+              ← 返回首页
+            </Link>
+            <h1 className="text-3xl font-bold text-gray-800 mb-2">
+              爱情动物人格测试
+            </h1>
+            <p className="text-gray-600 mb-6">
+              在开始测试前，请先输入您的昵称
+            </p>
+          </div>
+
+          {/* Error message */}
+          {error && (
+            <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+              {error}
+            </div>
+          )}
+
+          {/* Nickname Input */}
+          <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
+            <label className="block text-lg font-semibold text-gray-800 mb-4">
+              请输入您的昵称：
+            </label>
+            <input
+              type="text"
+              value={nickname}
+              onChange={(e) => {
+                setNickname(e.target.value)
+                setError(null)
+              }}
+              placeholder="请输入您的昵称"
+              maxLength={20}
+              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-pink-500 focus:outline-none text-lg"
+              onKeyPress={(e) => {
+                if (e.key === 'Enter' && nickname.trim()) {
+                  setShowNicknameInput(false)
+                }
+              }}
+            />
+            <p className="text-sm text-gray-500 mt-2">
+              昵称将用于显示在测试结果中，最多20个字符
+            </p>
+          </div>
+
+          {/* Start Button */}
+          <div className="flex justify-center">
+            <button
+              onClick={() => {
+                if (nickname.trim()) {
+                  setShowNicknameInput(false)
+                  setError(null)
+                } else {
+                  setError('请输入昵称')
+                }
+              }}
+              disabled={!nickname.trim()}
+              className={`px-8 py-4 rounded-lg font-medium text-lg transition-colors ${
+                nickname.trim()
+                  ? 'bg-pink-500 text-white hover:bg-pink-600'
+                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              }`}
+            >
+              开始测试
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+  
   // 如果是关系状态询问页
   if (showRelationshipQuestion) {
     const allAnswered = inRelationship !== null
@@ -450,8 +530,8 @@ export default function Test() {
         <div className="bg-white rounded-xl shadow-lg p-6 md:p-8 mb-6 hover:shadow-xl transition-shadow">
           <div className="flex items-start justify-between mb-6">
             <h2 className="text-2xl font-semibold text-gray-800">
-              {question.text}
-            </h2>
+            {question.text}
+          </h2>
             {isSocialExchangeQuestion && (
               <span className="text-xs text-gray-500 ml-4 whitespace-nowrap">
                 本题目结果不会与您的伴侣共享
