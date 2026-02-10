@@ -82,10 +82,10 @@ export default function Pair() {
             {error}
           </div>
           <Link 
-            href="/" 
+            href="/plaza" 
             className="px-6 py-3 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors inline-block"
           >
-            返回首页
+            返回测试广场
           </Link>
         </div>
       </div>
@@ -121,10 +121,10 @@ export default function Pair() {
           </button>
 
           <Link
-            href="/"
+            href="/plaza"
             className="block mt-4 text-gray-600 hover:text-gray-800 transition-colors"
           >
-            返回首页
+            返回测试广场
           </Link>
         </div>
       </div>

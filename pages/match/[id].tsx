@@ -96,10 +96,10 @@ export default function Match() {
             {error}
           </div>
           <Link 
-            href="/" 
+            href="/plaza" 
             className="px-6 py-3 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors inline-block"
           >
-            返回首页
+            返回测试广场
           </Link>
         </div>
       </div>
@@ -205,7 +205,7 @@ export default function Match() {
         {/* Header */}
         <div className="mb-8 text-center">
           <Link 
-            href="/" 
+            href="/plaza" 
             className="text-gray-600 hover:text-gray-800 transition-colors mb-4 inline-block"
           >
             ← 返回首页
@@ -494,7 +494,7 @@ export default function Match() {
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Link
-            href="/"
+            href="/plaza"
             className="px-6 py-3 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors text-center"
           >
             回到首页

@@ -137,9 +137,7 @@ body {
     30px 0 30px rgba(244, 114, 182, 0.49),
     60px 0 60px rgba(244, 114, 182, 0.28),
     90px 0 90px rgba(244, 114, 182, 0.14) !important;
-}
-
-.match-card-glow-commitment-intimacy {
+}.match-card-glow-commitment-intimacy {
   box-shadow: 
     /* 左边：用户A的绿色光晕 */
     -30px 0 30px rgba(74, 222, 128, 0.49),
@@ -245,4 +243,3 @@ body {
 .animal-card {
   position: relative;
 }
-

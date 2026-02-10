@@ -98,6 +98,34 @@ export async function saveUserA(pairId: string, userData: any) {
       updateData.scores_json = personalProfile
     }
     
+    // 分析：检查是否已完成测试，如果是首次完成则记录 completed_at
+    // 先查询当前记录的 completed_at 值
+    let shouldSetCompletedAt = true
+    try {
+      const { data: existingData, error: queryError } = await ((supabase
+        .from('test_results') as any)
+        .select('completed_at')
+        .eq('id', pairId)
+        .single())
+      
+      // 如果查询成功且 completed_at 已有值，则不更新（避免覆盖原始完成时间）
+      // 如果查询失败（可能是字段不存在），仍然尝试设置 completed_at
+      if (!queryError && existingData?.completed_at) {
+        shouldSetCompletedAt = false
+        console.log('[Supabase] completed_at already exists, skipping update')
+      }
+    } catch (err) {
+      // 查询出错（可能是字段不存在），仍然尝试设置 completed_at
+      console.warn('[Supabase] Error querying completed_at, will attempt to set it:', err)
+      shouldSetCompletedAt = true
+    }
+    
+    // 如果 completed_at 为 NULL 或不存在，说明这是首次完成测试，设置完成时间
+    if (shouldSetCompletedAt) {
+      updateData.completed_at = new Date().toISOString()
+      console.log('[Supabase] Setting completed_at to:', updateData.completed_at)
+    }
+    
     // 直接更新记录（记录应该已经由 generatePairId 创建）
     const { error } = await ((supabase
       .from('test_results') as any)
@@ -124,6 +152,8 @@ export async function saveUserA(pairId: string, userData: any) {
           id: pairId,
           user_a: cleanUserData,
           created_at: new Date().toISOString(),
+          // 分析：首次插入时记录完成时间
+          completed_at: new Date().toISOString(),
         }
         
         if (personalProfile.animal) {
@@ -210,6 +240,34 @@ export async function saveUserB(pairId: string, userData: any) {
     
     // 注意：userB 的顶层字段可以用于查询，但主要数据在 user_b JSONB 中
     // 如果需要，可以在这里添加 userB 的顶层字段更新
+    
+    // 分析：检查是否已完成测试，如果是首次完成则记录 completed_at
+    // 先查询当前记录的 completed_at 值
+    let shouldSetCompletedAt = true
+    try {
+      const { data: existingData, error: queryError } = await ((supabase
+        .from('test_results') as any)
+        .select('completed_at')
+        .eq('id', pairId)
+        .single())
+      
+      // 如果查询成功且 completed_at 已有值，则不更新（避免覆盖原始完成时间）
+      // 如果查询失败（可能是字段不存在），仍然尝试设置 completed_at
+      if (!queryError && existingData?.completed_at) {
+        shouldSetCompletedAt = false
+        console.log('[Supabase] completed_at already exists, skipping update')
+      }
+    } catch (err) {
+      // 查询出错（可能是字段不存在），仍然尝试设置 completed_at
+      console.warn('[Supabase] Error querying completed_at, will attempt to set it:', err)
+      shouldSetCompletedAt = true
+    }
+    
+    // 如果 completed_at 为 NULL 或不存在，说明这是首次完成测试，设置完成时间
+    if (shouldSetCompletedAt) {
+      updateData.completed_at = new Date().toISOString()
+      console.log('[Supabase] Setting completed_at to:', updateData.completed_at)
+    }
     
     const { error } = await ((supabase
       .from('test_results') as any)

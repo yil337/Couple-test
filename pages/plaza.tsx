@@ -2,7 +2,7 @@ import Link from 'next/link'
 import Head from 'next/head'
 import { ALL_TESTS, TESTS_BY_CATEGORY, getFeaturedTests } from '../src/lib/testsConfig'
 
-export default function Home() {
+export default function Plaza() {
   const featuredTests = getFeaturedTests()
   const categories = Object.keys(TESTS_BY_CATEGORY)
 

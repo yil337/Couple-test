@@ -1,5 +1,5 @@
 -- ============================================
--- 完整 Supabase 数据库设置脚本
+-- 完整 Supabase 数据库设置脚本（包含分析功能）
 -- ============================================
 -- 请在 Supabase SQL Editor 中执行此脚本
 -- 访问：https://app.supabase.com/project/otprifxlonsnlikbwngz/editor
@@ -7,9 +7,10 @@
 -- 此脚本包含：
 -- 1. 创建/更新 test_results 表
 -- 2. 添加新字段（支持新的爱情模型）
--- 3. 创建索引
--- 4. 配置 RLS 策略
--- 5. 验证设置
+-- 3. 添加 completed_at 字段（用于分析测试完成率）
+-- 4. 创建索引
+-- 5. 配置 RLS 策略
+-- 6. 验证设置
 -- ============================================
 
 -- ============================================
@@ -34,7 +35,8 @@ CREATE TABLE IF NOT EXISTS test_results (
   animal TEXT,            -- 动物类型（24种动物之一）
   sternberg_type TEXT,    -- Sternberg 类型 (LIKING, INFATUATION, EMPTY, ROMANTIC, COMPANIONATE, FOOLISH, CONSUMMATE)
   gottman_type TEXT,      -- Gottman 类型 (NONE, CRITICISM, DEFENSIVENESS, STONEWALLING, CONTEMPT)
-  scores_json JSONB       -- 详细得分（JSONB格式，包含所有得分向量）
+  scores_json JSONB,      -- 详细得分（JSONB格式，包含所有得分向量）
+  completed_at TIMESTAMPTZ  -- 测试完成时间（用于分析完成率，NULL 表示未完成）
 );
 
 -- ============================================
@@ -47,7 +49,8 @@ ALTER TABLE test_results
   ADD COLUMN IF NOT EXISTS animal TEXT,
   ADD COLUMN IF NOT EXISTS sternberg_type TEXT,
   ADD COLUMN IF NOT EXISTS gottman_type TEXT,
-  ADD COLUMN IF NOT EXISTS scores_json JSONB;
+  ADD COLUMN IF NOT EXISTS scores_json JSONB,
+  ADD COLUMN IF NOT EXISTS completed_at TIMESTAMPTZ;
 
 -- ============================================
 -- 步骤 4：创建索引以提高查询性能
@@ -58,6 +61,11 @@ CREATE INDEX IF NOT EXISTS idx_test_results_animal ON test_results(animal);
 CREATE INDEX IF NOT EXISTS idx_test_results_ls_type ON test_results(ls_type);
 CREATE INDEX IF NOT EXISTS idx_test_results_at_type ON test_results(at_type);
 CREATE INDEX IF NOT EXISTS idx_test_results_sternberg_type ON test_results(sternberg_type);
+
+-- completed_at 字段的部分索引（仅索引非 NULL 值，提高查询已完成测试的性能）
+CREATE INDEX IF NOT EXISTS idx_test_results_completed_at 
+ON test_results(completed_at) 
+WHERE completed_at IS NOT NULL;
 
 -- JSONB 字段的 GIN 索引（用于高效查询 JSONB 数据）
 CREATE INDEX IF NOT EXISTS idx_test_results_user_a_gin ON test_results USING GIN (user_a);
@@ -138,6 +146,12 @@ FROM pg_indexes
 WHERE tablename = 'test_results'
 ORDER BY indexname;
 
+-- 验证 completed_at 字段
+SELECT column_name, data_type, is_nullable
+FROM information_schema.columns
+WHERE table_name = 'test_results' 
+AND column_name = 'completed_at';
+
 -- ============================================
 -- 步骤 9：测试插入（可选，用于验证）
 -- ============================================
@@ -167,7 +181,8 @@ SELECT
   at_type,
   sternberg_type,
   gottman_type,
-  created_at
+  created_at,
+  completed_at
 FROM test_results 
 WHERE animal = '海豚'
 LIMIT 1;
@@ -201,6 +216,7 @@ LIMIT 1;
 -- - gottman_type (TEXT): Gottman 类型
 --   - 可能值：NONE, CRITICISM, DEFENSIVENESS, STONEWALLING, CONTEMPT
 -- - scores_json (JSONB): 详细得分数据
+-- - completed_at (TIMESTAMPTZ): 测试完成时间（NULL 表示未完成，用于分析完成率）
 --
 -- RLS 策略：
 -- - 允许所有人读取（SELECT）
@@ -209,14 +225,14 @@ LIMIT 1;
 --
 -- 索引：
 -- - 基础字段索引：created_at, id, animal, ls_type, at_type, sternberg_type
+-- - 分析索引：completed_at（部分索引，仅索引非 NULL 值）
 -- - JSONB GIN 索引：user_a, user_b, scores_json（用于高效查询 JSONB 数据）
 --
 -- 下一步：
 -- 1. 确认所有验证查询都返回正确结果
 -- 2. 在 Cloudflare Pages 环境变量中配置 Supabase URL 和 Key
 -- 3. 测试应用功能
+-- 4. 使用以下查询分析测试完成率：
+--    SELECT COUNT(*) FILTER (WHERE completed_at IS NOT NULL) * 100.0 / COUNT(*) AS completion_rate
+--    FROM test_results;
 -- ============================================
-
-
-
-

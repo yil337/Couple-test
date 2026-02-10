@@ -91,10 +91,10 @@ export default function SharePage() {
             {error || '未找到测试结果'}
           </div>
           <Link
-            href="/"
+            href="/plaza"
             className="px-6 py-3 bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded-xl hover:shadow-lg transition-all duration-300 inline-block font-medium"
           >
-            返回首页
+            返回测试广场
           </Link>
         </div>
       </div>
@@ -107,7 +107,7 @@ export default function SharePage() {
         {/* Header */}
         <div className="mb-8 text-center">
           <Link
-            href="/"
+            href="/plaza"
             className="text-gray-600 hover:text-gray-800 transition-colors mb-4 inline-block text-lg"
           >
             ← 返回首页
