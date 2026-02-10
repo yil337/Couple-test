@@ -38,6 +38,30 @@ export const ALL_TESTS: TestConfig[] = [
     questions: 10,
     duration: '3-5分钟',
     featured: true
+  },
+  {
+    id: 'pig-test',
+    name: '你是什么猪猪测试',
+    description: '通过10道题，发现你内心的猪猪人格，看看你是哪种可爱的小猪猪',
+    icon: '🐷',
+    color: 'from-pink-500 to-purple-500',
+    route: '/pig-test',
+    category: '趣味测试',
+    questions: 10,
+    duration: '3-5分钟',
+    featured: true
+  },
+  {
+    id: 'dog-test',
+    name: '你是什么狗狗测试',
+    description: '通过10道题，发现你内心的狗狗人格，看看你是哪种可爱的小狗狗',
+    icon: '🐶',
+    color: 'from-blue-500 to-cyan-500',
+    route: '/dog-test',
+    category: '趣味测试',
+    questions: 10,
+    duration: '3-5分钟',
+    featured: true
   }
 ]
 

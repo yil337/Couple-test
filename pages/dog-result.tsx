@@ -1,9 +1,9 @@
 import { useRouter } from 'next/router'
 import Link from 'next/link'
 import Head from 'next/head'
-import { CAT_TYPES } from '../src/lib/catQuestions'
+import { DOG_TYPES } from '../src/lib/dogQuestions'
 
-export default function CatResult() {
+export default function DogResult() {
   const router = useRouter()
   const { type, nickname } = router.query
 
@@ -17,17 +17,16 @@ export default function CatResult() {
     )
   }
 
-  const catType = CAT_TYPES[type] || CAT_TYPES['橘猫']
+  const dogType = DOG_TYPES[type] || DOG_TYPES['金毛']
   const displayName = (nickname && typeof nickname === 'string') ? nickname : '你'
 
   return (
     <>
       <Head>
-        <title>{displayName}是{catType.name} - LY Analytics</title>
+        <title>{displayName}是{dogType.name} - LY Analytics</title>
       </Head>
-      <div className="min-h-screen py-12 px-4 bg-gradient-to-br from-orange-50 to-yellow-50">
+      <div className="min-h-screen py-12 px-4 bg-gradient-to-br from-blue-50 to-cyan-50">
         <div className="max-w-4xl mx-auto">
-          {/* Header */}
           <div className="text-center mb-8">
             <Link 
               href="/" 
@@ -40,29 +39,27 @@ export default function CatResult() {
             </h1>
           </div>
 
-          {/* Cat Card */}
-          <div className={`bg-gradient-to-br ${catType.color} rounded-2xl shadow-2xl p-8 md:p-12 mb-8`}>
+          <div className={`bg-gradient-to-br ${dogType.color} rounded-2xl shadow-2xl p-8 md:p-12 mb-8`}>
             <div className="text-center">
-              <div className="text-8xl mb-6">{catType.emoji}</div>
+              <div className="text-8xl mb-6">{dogType.emoji}</div>
               <h2 className="text-4xl md:text-5xl font-bold mb-6 text-gray-800">
-                {catType.name}
+                {dogType.name}
               </h2>
               <p className="text-xl md:text-2xl leading-relaxed mb-8 text-gray-700">
-                {catType.description}
+                {dogType.description}
               </p>
             </div>
           </div>
 
-          {/* Traits */}
           <div className="bg-white rounded-xl shadow-lg p-6 md:p-8 mb-8">
             <h3 className="text-2xl font-bold text-gray-800 mb-6 text-center">
               ✨ 你的特质
             </h3>
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-              {catType.traits.map((trait, index) => (
+              {dogType.traits.map((trait, index) => (
                 <div
                   key={index}
-                  className="bg-gradient-to-br from-orange-100 to-yellow-100 rounded-lg p-4 text-center"
+                  className="bg-gradient-to-br from-blue-100 to-cyan-100 rounded-lg p-4 text-center"
                 >
                   <span className="text-gray-800 font-medium">{trait}</span>
                 </div>
@@ -70,11 +67,10 @@ export default function CatResult() {
             </div>
           </div>
 
-          {/* Actions */}
           <div className="text-center space-y-4">
             <Link
-              href="/cat-test"
-              className="inline-block px-8 py-4 bg-gradient-to-r from-orange-500 to-yellow-500 text-white rounded-lg hover:from-orange-600 hover:to-yellow-600 transition-all transform hover:scale-105 shadow-lg text-lg font-medium"
+              href="/dog-test"
+              className="inline-block px-8 py-4 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg hover:from-blue-600 hover:to-cyan-600 transition-all transform hover:scale-105 shadow-lg text-lg font-medium"
             >
               重新测试
             </Link>
@@ -88,7 +84,6 @@ export default function CatResult() {
             </div>
           </div>
 
-          {/* Footer */}
           <div className="mt-16 text-center space-y-4">
             <div className="pb-4">
               <p className="text-sm font-semibold text-gray-500 mb-2">
