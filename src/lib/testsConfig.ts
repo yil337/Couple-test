@@ -28,64 +28,16 @@ export const ALL_TESTS: TestConfig[] = [
     featured: true
   },
   {
-    id: 'personality-big5',
-    name: '大五人格测试',
-    description: '基于心理学经典理论，全面评估你的性格特质和人格类型',
-    icon: '🧠',
-    color: 'from-blue-500 to-cyan-500',
-    route: '/personality-test',
-    category: '人格心理',
-    questions: 30,
-    duration: '15-20分钟',
+    id: 'cat-test',
+    name: '你是什么猫猫测试',
+    description: '通过10道题，发现你内心的猫猫人格，看看你是哪种可爱的小猫咪',
+    icon: '🐱',
+    color: 'from-orange-500 to-yellow-500',
+    route: '/cat-test',
+    category: '趣味测试',
+    questions: 10,
+    duration: '3-5分钟',
     featured: true
-  },
-  {
-    id: 'career-fit',
-    name: '职业匹配度测试',
-    description: '通过分析你的兴趣、价值观和能力，找到最适合你的职业方向',
-    icon: '💼',
-    color: 'from-green-500 to-emerald-500',
-    route: '/career-test',
-    category: '职业发展',
-    questions: 25,
-    duration: '12-15分钟',
-    featured: false
-  },
-  {
-    id: 'stress-level',
-    name: '压力水平评估',
-    description: '科学评估你当前的压力水平，并提供个性化的缓解建议',
-    icon: '😌',
-    color: 'from-orange-500 to-red-500',
-    route: '/stress-test',
-    category: '心理健康',
-    questions: 20,
-    duration: '8-10分钟',
-    featured: false
-  },
-  {
-    id: 'communication-style',
-    name: '沟通风格测试',
-    description: '了解你的沟通偏好和风格，提升人际交往能力',
-    icon: '💬',
-    color: 'from-indigo-500 to-purple-500',
-    route: '/communication-test',
-    category: '人际交往',
-    questions: 22,
-    duration: '10-12分钟',
-    featured: false
-  },
-  {
-    id: 'emotional-intelligence',
-    name: '情商测试',
-    description: '评估你的情绪感知、管理和表达能力，提升情商水平',
-    icon: '❤️',
-    color: 'from-rose-500 to-pink-500',
-    route: '/eq-test',
-    category: '情感关系',
-    questions: 28,
-    duration: '12-15分钟',
-    featured: false
   }
 ]
 
