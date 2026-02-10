@@ -62,6 +62,18 @@ export const ALL_TESTS: TestConfig[] = [
     questions: 10,
     duration: '3-5分钟',
     featured: true
+  },
+  {
+    id: 'food-test',
+    name: '你是年夜饭桌上的哪道菜',
+    description: '通过10道题，发现你在年夜饭桌上的角色，看看你是哪道寓意美好的菜品',
+    icon: '🍽️',
+    color: 'from-red-500 to-orange-500',
+    route: '/food-test',
+    category: '趣味测试',
+    questions: 10,
+    duration: '3-5分钟',
+    featured: true
   }
 ]
 
