@@ -21,7 +21,7 @@ export const ALL_TESTS: TestConfig[] = [
     description: '基于6大心理学理论模型，科学评估你的爱情动物画像与伴侣匹配度',
     icon: '💕',
     color: 'from-pink-500 to-purple-500',
-    route: '/love-test',
+    route: '/love',
     category: '情感关系',
     questions: 26,
     duration: '10-15分钟',
